@@ -1,14 +1,15 @@
 import { Link } from "react-router-dom";
+import Input from "../components/ui/Input";
 import styled from "styled-components";
 
 const Login = () => {
   return (
     <Container>
       <h1>로고</h1>
-      <input type="text" placeholder="ID" />
-      <input type="password" placeholder="비밀번호" />
+      <Input type="text" placeholder="ID" />
+      <Input type="password" placeholder="비밀번호" />
       <div>
-        <input type="checkbox" id="auto-login" />
+        <Input type="checkbox" id="auto-login" />
         <label htmlFor="auto-login">자동 로그인</label>
       </div>
       <button>로그인</button>

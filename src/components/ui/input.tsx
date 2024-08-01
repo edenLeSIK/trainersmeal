@@ -1,9 +1,15 @@
 import styled from "styled-components";
 
-const InputComponent = styled.input``;
+interface InputProps {
+  type: string;
+  placeholder?: string;
+  id?: string;
+}
 
-const Input = (type, placeholder) => {
-  return <InputComponent type={type} placeholder={placeholder} />;
+const Input: React.FC<InputProps> = ({ type, placeholder, id }) => {
+  return <InputComponent type={type} placeholder={placeholder} id={id} />;
 };
+
+const InputComponent = styled.input``;
 
 export default Input;
