@@ -10,6 +10,9 @@ const Input: React.FC<InputProps> = ({ type, placeholder, id }) => {
   return <InputComponent type={type} placeholder={placeholder} id={id} />;
 };
 
-const InputComponent = styled.input``;
+const InputComponent = styled.input`
+  &.active {
+  }
+`;
 
 export default Input;
