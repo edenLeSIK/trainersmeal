@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
@@ -5,22 +6,44 @@ import styled from "styled-components";
 import logo from "../assets/logo.png";
 import naver from "../assets/auth/naver.png";
 import { FcGoogle } from "react-icons/fc";
-import { lineGray, main, mainBlack } from "../styles/color";
+import { lineGray, main } from "../styles/color";
 
 const Login = () => {
+  const [id, setId] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+
+  const handleLogin = async (e: FormEvent) => {
+    e.preventDefault();
+    try {
+      // localStorage.setItem("token", e.target.value);
+      console.log("ID:", id, "Password:", password);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleId = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setId(e.target.value);
+  const handlePassword = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setPassword(e.target.value);
+
   return (
     <Container>
       <img src={logo} alt="logo" className="logo" />
-      <form onSubmit={() => {}}>
+      <form onSubmit={handleLogin}>
         <Input
           type="text"
           placeholder="ID를 입력하세요"
           className="text-input"
+          value={id}
+          onChange={handleId}
         />
         <Input
           type="password"
           placeholder="비밀번호를 입력하세요"
           className="text-input"
+          value={password}
+          onChange={handlePassword}
         />
         <div className="sub-func-wrapper">
           <div className="checkbox-wrapper">

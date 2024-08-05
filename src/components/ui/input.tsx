@@ -6,15 +6,26 @@ interface InputProps {
   placeholder?: string;
   id?: string;
   className?: string;
+  value?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const Input: React.FC<InputProps> = ({ type, placeholder, id, className }) => {
+const Input: React.FC<InputProps> = ({
+  type,
+  placeholder,
+  id,
+  className,
+  value,
+  onChange,
+}) => {
   return (
     <InputComponent
       type={type}
       placeholder={placeholder}
       id={id}
       className={className}
+      value={value}
+      onChange={onChange}
     />
   );
 };
