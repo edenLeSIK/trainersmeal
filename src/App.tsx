@@ -1,15 +1,17 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Header } from "./layout";
 import Home from "./pages/Home";
+import Login from "./pages/Login";
 import GlobalStyle from "./GlobalStyle";
 
 function App() {
   return (
     <Router>
       <GlobalStyle />
-      <Header />
+      {/* <Header /> */}
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
       </Routes>
     </Router>
   );

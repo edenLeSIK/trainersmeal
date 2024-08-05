@@ -9,11 +9,14 @@ const GlobalStyle = createGlobalStyle`
     box-sizing: border-box;
   }
 
-  body {
+  body, html, #root {
     width: 768px;
     height: 1024px;
-    margin: 0 auto;
-    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
     border: 1px solid blue;
   }
