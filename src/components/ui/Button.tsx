@@ -3,7 +3,7 @@ import { main } from "../../styles/color";
 
 interface ButtonProps {
   text: string;
-  onClick?: () => void;
+  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   className?: string;
   color: string;
 }

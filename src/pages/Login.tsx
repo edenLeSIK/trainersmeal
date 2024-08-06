@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, FormEvent, ChangeEvent } from "react";
 import { Link } from "react-router-dom";
-import Input from "../components/ui/Input";
+import Input from "../components/ui/InputComponent";
 import Button from "../components/ui/Button";
 import styled from "styled-components";
 import logo from "../assets/logo.png";
@@ -22,9 +22,8 @@ const Login = () => {
     }
   };
 
-  const handleId = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setId(e.target.value);
-  const handlePassword = (e: React.ChangeEvent<HTMLInputElement>) =>
+  const handleId = (e: ChangeEvent<HTMLInputElement>) => setId(e.target.value);
+  const handlePassword = (e: ChangeEvent<HTMLInputElement>) =>
     setPassword(e.target.value);
 
   return (
