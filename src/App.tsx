@@ -4,6 +4,7 @@ import Home from "./pages/Member";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Bia from "./pages/Bia";
+import Meal from "./pages/Meal";
 import GlobalStyle from "./GlobalStyle";
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/bia" element={<Bia />} />
+        <Route path="/meal" element={<Meal />} />
       </Routes>
     </Router>
   );
