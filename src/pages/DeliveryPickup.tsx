@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import Button from "../components/ui/Button"; // Button 컴포넌트 임포트
 
 const DeliveryPickup: React.FC = () => {
   const navigate = useNavigate();
@@ -9,14 +8,7 @@ const DeliveryPickup: React.FC = () => {
 
   const handleSelect = (option: string) => {
     setSelectedOption(option);
-  };
-
-  const handleNext = () => {
-    if (selectedOption) {
-      navigate("/delivery-date", { state: { deliveryType: selectedOption } });
-    } else {
-      alert("배송 또는 픽업을 선택해주세요.");
-    }
+    navigate("/delivery-date", { state: { deliveryType: option } });
   };
 
   return (
@@ -39,9 +31,6 @@ const DeliveryPickup: React.FC = () => {
           <h2>픽업</h2>
           <p>운동 후 음식을 픽업하세요.</p>
         </div>
-      </div>
-      <div className="button-wrapper">
-        <Button text="다음" onClick={handleNext} color="main" />
       </div>
     </Container>
   );
@@ -104,13 +93,5 @@ const Container = styled.div`
     &:hover {
       background-color: #f9f9f9;
     }
-  }
-
-  .button-wrapper {
-    margin-top: 40px;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    padding-bottom: 20px;
   }
 `;

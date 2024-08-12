@@ -8,6 +8,7 @@ import Meal from "./pages/Meal";
 import Diet from "./pages/Diet";
 import Option from "./pages/Option";
 import DeliveryPickup from "./pages/DeliveryPickup";
+import DeliveryDate from "./pages/DeliveryDate";
 import GlobalStyle from "./GlobalStyle";
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
         <Route path="/diet" element={<Diet />} />
         <Route path="option" element={<Option />} />
         <Route path="/delivery-pickup" element={<DeliveryPickup />} />
+        <Route path="/delivery-date" element={<DeliveryDate />} />
       </Routes>
     </Router>
   );
