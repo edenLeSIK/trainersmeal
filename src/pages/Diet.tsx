@@ -31,7 +31,7 @@ const Diet: React.FC = () => {
 
   const handleOrder = () => {
     console.log("Selected options:", selectedOptions);
-    navigate("/delivery-date", { state: { selectedOptions } });
+    navigate("/delivery-pickup", { state: { selectedOptions } });
   };
 
   const handleOptionClick = (optionName: string) => {
