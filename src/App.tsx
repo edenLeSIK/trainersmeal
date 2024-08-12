@@ -5,6 +5,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Bia from "./pages/Bia";
 import Meal from "./pages/Meal";
+import Diet from "./pages/Diet";
+import Option from "./pages/Option";
 import GlobalStyle from "./GlobalStyle";
 
 function App() {
@@ -18,6 +20,8 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/bia" element={<Bia />} />
         <Route path="/meal" element={<Meal />} />
+        <Route path="/diet" element={<Diet />} />
+        <Route path="option" element={<Option />} />
       </Routes>
     </Router>
   );

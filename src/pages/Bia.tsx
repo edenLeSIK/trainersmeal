@@ -36,11 +36,12 @@ const Bia: React.FC = () => {
     };
     console.log("Updated Body Composition Data:", updatedData);
 
-    navigate("/meal-selection");
+    navigate("/meal");
   };
 
   return (
     <Container>
+      <h1>체성분 데이터를 입력하세요ㄴ</h1>
       <div className="input-group">
         <label htmlFor="weight">체중</label>
         <InputComponent

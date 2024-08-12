@@ -39,7 +39,7 @@ const Meal: React.FC = () => {
     console.log("Selected meal count:", mealCount);
     console.log("Selected menus:", selectedMenus);
 
-    navigate("/diet-selection");
+    navigate("/diet");
   };
 
   return (
