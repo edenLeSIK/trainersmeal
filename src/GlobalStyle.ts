@@ -9,12 +9,18 @@ const GlobalStyle = createGlobalStyle`
     box-sizing: border-box;
   }
 
-  body {
-    width: 768px;
-    height: 1024px;
-    margin: 0 auto;
-    overflow: hidden;
+  body, html, #root {
+    width: 100dvw;
+    height: 100dvh;
+    max-width: 768px;
+    max-height: 1024px;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
+    overflow: hidden;
     border: 1px solid blue;
   }
 
@@ -35,6 +41,12 @@ const GlobalStyle = createGlobalStyle`
   input {
     outline: none;
   }
+
+  /* .container {
+    max-width: 100%;
+    max-height: 100%;
+    overflow: auto; 
+  } */
 `;
 
 export default GlobalStyle;
