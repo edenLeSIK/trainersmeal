@@ -17,7 +17,6 @@ const DeliveryDate: React.FC = () => {
     const dayOfWeek = today.getDay();
     const nextMonday = new Date(today);
 
-    // Determine next Monday or two Mondays later
     if (dayOfWeek === 3 && today.getHours() >= 17) {
       nextMonday.setDate(today.getDate() + ((15 - dayOfWeek) % 7));
     } else if (dayOfWeek > 3 || (dayOfWeek === 3 && today.getHours() >= 17)) {
@@ -32,7 +31,7 @@ const DeliveryDate: React.FC = () => {
   const handleDateChange = (selectedDate: Date) => {
     if (isMonday(selectedDate) && selectedDate >= getNextMonday()) {
       setDate(selectedDate);
-      navigate("/checkout", {
+      navigate("/payment", {
         state: { deliveryType: state.deliveryType, deliveryDate: selectedDate },
       });
     } else {
@@ -47,7 +46,7 @@ const DeliveryDate: React.FC = () => {
         onClickDay={handleDateChange}
         value={getNextMonday()}
         tileDisabled={({ date }) => !isMonday(date) || date < getNextMonday()}
-        locale="en-US" // This will make the week start on Sunday
+        locale="en-US"
       />
     </Container>
   );
