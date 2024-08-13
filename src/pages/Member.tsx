@@ -49,46 +49,54 @@ const Member: React.FC = () => {
     navigate(`/member/${id}`);
   };
 
+  const handleAddMember = () => {
+    navigate(`/add-member`);
+  };
+
   return (
     <Container>
       <div className="filter-search-bar">
         <select value={filterStatus} onChange={handleFilterChange}>
-          <option value="">All</option>
-          <option value="Active">Active</option>
-          <option value="Inactive">Inactive</option>
+          <option value="">모두</option>
+          <option value="Active">구독중</option>
+          <option value="Inactive">구독안함</option>
         </select>
         <InputComponent
           type="text"
-          placeholder="Search members..."
+          placeholder="회원명을 입력하세요"
           value={searchTerm}
           onChange={handleSearchChange}
+        />
+        <Button
+          text="등록"
+          onClick={handleAddMember}
+          color="main"
+          className="add-member-button"
         />
       </div>
       <div className="table-container">
         <table className="member-table">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Gender</th>
-              <th>Goal</th>
-              <th>Status</th>
-              <th>Action</th>
+              <th>구독중</th>
+              <th>이름</th>
+              <th>성별</th>
+              <th>목표</th>
+              <th>주문하기</th>
             </tr>
           </thead>
           <tbody>
             {filteredMembers.map((member) => (
               <tr key={member.id} onClick={() => handleMemberClick(member.id)}>
-                <td>{member.id}</td>
+                <td>
+                  <div className={`status-indicator ${member.status}`} />
+                </td>
                 <td>{member.name}</td>
                 <td>{member.gender}</td>
                 <td>{member.goal}</td>
                 <td>
-                  <div className={`status-indicator ${member.status}`} />
-                </td>
-                <td>
                   <Button
-                    text="Order"
+                    text="처방하기"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleOrderClick(member.id);
@@ -129,6 +137,12 @@ const Container = styled.div`
 
     input {
       flex: 1;
+    }
+
+    .add-member-button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-left: 10px;
     }
   }
 
