@@ -17,7 +17,6 @@ const Option: React.FC = () => {
     (item: MenuItem) => item.name === state?.selectedOption
   );
 
-  // 각 블록의 기본 가격을 정의합니다.
   const defaultPrice1 = menu?.blocks[0]?.choices[0]?.price || 0;
   const defaultPrice2 = menu?.blocks[1]?.choices[0]?.price || 0;
   const defaultPrice3 = menu?.blocks[2]?.choices[0]?.price || 0;
