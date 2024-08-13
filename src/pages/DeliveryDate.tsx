@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
@@ -8,7 +7,6 @@ const DeliveryDate: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const state = location.state as { deliveryType: string };
-  const [date, setDate] = useState<Date | null>(null);
 
   const isMonday = (date: Date) => date.getDay() === 1;
 
@@ -30,7 +28,6 @@ const DeliveryDate: React.FC = () => {
 
   const handleDateChange = (selectedDate: Date) => {
     if (isMonday(selectedDate) && selectedDate >= getNextMonday()) {
-      setDate(selectedDate);
       navigate("/payment", {
         state: { deliveryType: state.deliveryType, deliveryDate: selectedDate },
       });
