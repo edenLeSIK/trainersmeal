@@ -19,15 +19,17 @@ const Diet: React.FC = () => {
   const selectedMenus = state?.selectedMenus ?? ["balanceA", "balanceB"];
 
   const [activeTab, setActiveTab] = useState<number>(0);
-  const [selectedOptions, setSelectedOptions] = useState<string[]>(
-    new Array(mealCount * 2).fill("")
-  );
+  // const [selectedOptions, setSelectedOptions] = useState<string[]>(
+  //   new Array(mealCount * 2).fill("")
+  // );
 
-  const handleOptionChange = (index: number, option: string) => {
-    const newOptions = [...selectedOptions];
-    newOptions[index] = option;
-    setSelectedOptions(newOptions);
-  };
+  const selectedOptions = new Array(mealCount * 2).fill("");
+
+  // const handleOptionChange = (index: number, option: string) => {
+  //   const newOptions = [...selectedOptions];
+  //   newOptions[index] = option;
+  //   setSelectedOptions(newOptions);
+  // };
 
   const handleOrder = () => {
     console.log("Selected options:", selectedOptions);
