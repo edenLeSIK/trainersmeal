@@ -5,7 +5,7 @@ import styled from "styled-components";
 import logo from "../assets/logo.png";
 import { lineGray } from "../styles/color";
 
-const gyms = ["Gym A", "Gym B", "Gym C", "Gym D"];
+const gyms = ["Cozy", "Gym B", "Gym C", "Gym D"];
 
 const Register = () => {
   const [name, setName] = useState<string>("");
