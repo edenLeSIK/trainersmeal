@@ -42,7 +42,7 @@ const Member: React.FC = () => {
   };
 
   const handleOrderClick = (id: string) => {
-    navigate(`/bia`);
+    navigate(`/bia/${id}`);
   };
 
   const handleMemberClick = (id: string) => {
