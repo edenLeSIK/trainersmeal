@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { menus } from "../constants/menu";
+import { menus, MenuItem, MenuKey } from "../constants/menu";
 import Button from "../components/ui/Button";
 
 const Option: React.FC = () => {
@@ -10,20 +10,26 @@ const Option: React.FC = () => {
   const state = location.state as {
     menuName: string;
     selectedOption: string;
+    index: number;
   } | null;
 
-  const menu = menus[state?.menuName || ""]?.find(
-    (item) => item.name === state?.selectedOption
+  const menu: MenuItem | undefined = menus[state?.menuName as MenuKey]?.find(
+    (item: MenuItem) => item.name === state?.selectedOption
   );
 
+  // 각 블록의 기본 가격을 정의합니다.
+  const defaultPrice1 = menu?.blocks[0]?.choices[0]?.price || 0;
+  const defaultPrice2 = menu?.blocks[1]?.choices[0]?.price || 0;
+  const defaultPrice3 = menu?.blocks[2]?.choices[0]?.price || 0;
+
   const [selectedOption1, setSelectedOption1] = useState<string>(
-    menu?.blocks[0]?.choices[0].name || ""
+    menu?.blocks[0]?.choices[0]?.name || ""
   );
   const [selectedOption2, setSelectedOption2] = useState<string>(
-    menu?.blocks[1]?.choices[0].name || ""
+    menu?.blocks[1]?.choices[0]?.name || ""
   );
   const [selectedOption3, setSelectedOption3] = useState<string>(
-    menu?.blocks[2]?.choices[0].name || ""
+    menu?.blocks[2]?.choices[0]?.name || ""
   );
   const [totalPrice, setTotalPrice] = useState<number>(11000);
 
@@ -38,19 +44,18 @@ const Option: React.FC = () => {
   };
 
   const calculateTotalPrice = () => {
-    const defaultPrice1 = menu?.blocks[0]?.choices[0].price || 0;
-    const defaultPrice2 = menu?.blocks[1]?.choices[0].price || 0;
-    const defaultPrice3 = menu?.blocks[2]?.choices[0].price || 0;
-
     const selectedPrice1 =
-      menu?.blocks[0]?.choices.find((choice) => choice.name === selectedOption1)
-        ?.price || 0;
+      menu?.blocks[0]?.choices.find(
+        (choice) => choice?.name === selectedOption1
+      )?.price || 0;
     const selectedPrice2 =
-      menu?.blocks[1]?.choices.find((choice) => choice.name === selectedOption2)
-        ?.price || 0;
+      menu?.blocks[1]?.choices.find(
+        (choice) => choice?.name === selectedOption2
+      )?.price || 0;
     const selectedPrice3 =
-      menu?.blocks[2]?.choices.find((choice) => choice.name === selectedOption3)
-        ?.price || 0;
+      menu?.blocks[2]?.choices.find(
+        (choice) => choice?.name === selectedOption3
+      )?.price || 0;
 
     const newTotalPrice =
       11000 +
@@ -92,17 +97,17 @@ const Option: React.FC = () => {
               type="radio"
               id={`option1-${index}`}
               name="option1"
-              value={choice.name}
-              onChange={() => handleOptionChange(1, choice.name)}
-              checked={selectedOption1 === choice.name}
+              value={choice?.name}
+              onChange={() => handleOptionChange(1, choice?.name || "")}
+              checked={selectedOption1 === choice?.name}
             />
             <label htmlFor={`option1-${index}`}>
-              {choice.name}{" "}
+              {choice?.name}{" "}
               {index === 0
                 ? "(0원)"
                 : `(${
-                    choice.price > menu?.blocks[0]?.choices[0].price
-                      ? `+${choice.price - menu?.blocks[0]?.choices[0].price}원`
+                    choice?.price && choice?.price > defaultPrice1
+                      ? `+${choice.price - defaultPrice1}원`
                       : "0원"
                   })`}
             </label>
@@ -119,17 +124,17 @@ const Option: React.FC = () => {
               type="radio"
               id={`option2-${index}`}
               name="option2"
-              value={choice.name}
-              onChange={() => handleOptionChange(2, choice.name)}
-              checked={selectedOption2 === choice.name}
+              value={choice?.name}
+              onChange={() => handleOptionChange(2, choice?.name || "")}
+              checked={selectedOption2 === choice?.name}
             />
             <label htmlFor={`option2-${index}`}>
-              {choice.name}{" "}
+              {choice?.name}{" "}
               {index === 0
                 ? "(0원)"
                 : `(${
-                    choice.price > menu?.blocks[1]?.choices[0].price
-                      ? `+${choice.price - menu?.blocks[1]?.choices[0].price}원`
+                    choice?.price && choice?.price > defaultPrice2
+                      ? `+${choice.price - defaultPrice2}원`
                       : "0원"
                   })`}
             </label>
@@ -146,17 +151,17 @@ const Option: React.FC = () => {
               type="radio"
               id={`option3-${index}`}
               name="option3"
-              value={choice.name}
-              onChange={() => handleOptionChange(3, choice.name)}
-              checked={selectedOption3 === choice.name}
+              value={choice?.name}
+              onChange={() => handleOptionChange(3, choice?.name || "")}
+              checked={selectedOption3 === choice?.name}
             />
             <label htmlFor={`option3-${index}`}>
-              {choice.name}{" "}
+              {choice?.name}{" "}
               {index === 0
                 ? "(0원)"
                 : `(${
-                    choice.price > menu?.blocks[2]?.choices[0].price
-                      ? `+${choice.price - menu?.blocks[2]?.choices[0].price}원`
+                    choice?.price && choice?.price > defaultPrice3
+                      ? `+${choice.price - defaultPrice3}원`
                       : "0원"
                   })`}
             </label>

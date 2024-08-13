@@ -1,3 +1,22 @@
+type Block = {
+  block: string;
+  name: string;
+  price: number;
+};
+
+export type MenuItem = {
+  day: string;
+  name: string;
+  price: number;
+  discountPrice: number;
+  discount: number;
+  base: Block | undefined;
+  blocks: {
+    option: string;
+    choices: (Block | undefined)[];
+  }[];
+};
+
 export const blockData = {
   base: [
     { block: "BM", name: "곡물 샐러드 베이스", price: 2100 },
@@ -44,7 +63,7 @@ export const blockData = {
   ],
 };
 
-export const balanceAMenu = [
+export const balanceAMenu: MenuItem[] = [
   {
     day: "월",
     name: "수비드 부채살 포케",
@@ -251,7 +270,7 @@ export const balanceAMenu = [
   },
 ];
 
-export const balanceBMenu = [
+export const balanceBMenu: MenuItem[] = [
   {
     day: "월",
     name: "수비드 닭가슴살 포케",
@@ -458,7 +477,7 @@ export const balanceBMenu = [
   },
 ];
 
-export const dietAMenu = [
+export const dietAMenu: MenuItem[] = [
   {
     day: "월",
     name: "수비드 닭가슴살 샐러드",
@@ -665,7 +684,7 @@ export const dietAMenu = [
   },
 ];
 
-export const dietBMenu = [
+export const dietBMenu: MenuItem[] = [
   {
     day: "월",
     name: "로스트치킨 두부면 샐러드",
@@ -872,7 +891,9 @@ export const dietBMenu = [
   },
 ];
 
-export const menus = {
+export type MenuKey = "balanceA" | "balanceB" | "dietA" | "dietB";
+
+export const menus: Record<MenuKey, MenuItem[]> = {
   balanceA: balanceAMenu,
   balanceB: balanceBMenu,
   dietA: dietAMenu,
