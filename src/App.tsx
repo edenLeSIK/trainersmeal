@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 // import { Header } from "./layout";
 import Home from "./pages/Member";
 import Login from "./pages/Login";
+import Add from "./pages/Add";
 import Register from "./pages/Register";
 import Bia from "./pages/Bia";
 import Meal from "./pages/Meal";
@@ -21,6 +22,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/add" element={<Add />} />
         <Route path="/register" element={<Register />} />
         <Route path="/bia/:id" element={<Bia />} />
         <Route path="/meal" element={<Meal />} />
