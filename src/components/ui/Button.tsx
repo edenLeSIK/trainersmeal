@@ -1,11 +1,11 @@
 import styled from "styled-components";
-import { main } from "../../styles/color";
+import { main, sub } from "../../styles/color";
 
 interface ButtonProps {
   text: string;
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   className?: string;
-  color: string;
+  color?: string;
 }
 
 const Button: React.FC<ButtonProps> = ({ text, onClick, className, color }) => {
@@ -23,7 +23,9 @@ const ButtonComponent = styled.button`
   border-radius: 10px;
   background: none;
   background: ${(props) => props.color === "main" && main};
+  background: ${(props) => props.color === "sub" && sub};
   color: ${(props) => props.color === "main" && "#fff"};
+  color: ${(props) => props.color === "sub" && "#fff"};
 `;
 
 export default Button;
