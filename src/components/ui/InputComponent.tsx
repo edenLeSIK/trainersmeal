@@ -7,6 +7,10 @@ interface InputProps {
   id?: string;
   className?: string;
   value?: string;
+  label?: string;
+  readonly?: boolean;
+  name?: string;
+  checked?: boolean;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
@@ -17,16 +21,24 @@ const Input: React.FC<InputProps> = ({
   className,
   value,
   onChange,
+  label,
+  readonly,
+  name,
 }) => {
   return (
-    <InputComponent
-      type={type}
-      placeholder={placeholder}
-      id={id}
-      className={className}
-      value={value}
-      onChange={onChange}
-    />
+    <>
+      {label && <label htmlFor={id}>{label}</label>}
+      <InputComponent
+        type={type}
+        placeholder={placeholder}
+        id={id}
+        className={className}
+        value={value}
+        onChange={onChange}
+        readOnly={readonly}
+        name={name}
+      />
+    </>
   );
 };
 

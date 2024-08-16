@@ -50,7 +50,7 @@ const Member: React.FC = () => {
   };
 
   const handleAddMember = () => {
-    navigate(`/add-member`);
+    navigate(`/add`);
   };
 
   return (
