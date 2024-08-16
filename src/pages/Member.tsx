@@ -1,9 +1,17 @@
 import { useState, ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import UserCard from "../components/auth/UserCard";
 import InputComponent from "../components/ui/InputComponent";
 import Button from "../components/ui/Button";
 import styled from "styled-components";
 import { membersData } from "../constants/member";
+import profile from "../assets/auth/profile.jpg";
+
+const trainer = {
+  name: "트레이너1",
+  photo: profile,
+  gym: "cozy",
+};
 
 const Member: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<string>("");
@@ -55,6 +63,7 @@ const Member: React.FC = () => {
 
   return (
     <Container>
+      <UserCard user={trainer} />
       <div className="filter-search-bar">
         <select value={filterStatus} onChange={handleFilterChange}>
           <option value="">모두</option>
@@ -149,7 +158,6 @@ const Container = styled.div`
   .table-container {
     flex: 1;
     overflow-y: auto;
-    border: 1px solid #ccc;
     border-radius: 5px;
   }
 
@@ -160,8 +168,9 @@ const Container = styled.div`
     th,
     td {
       padding: 10px;
-      border: 1px solid #ccc;
       text-align: left;
+      border-left: 1px solid #ccc;
+      border-right: 1px solid #ccc;
     }
 
     th {
@@ -173,6 +182,7 @@ const Container = styled.div`
 
     tbody tr {
       cursor: pointer;
+      border-bottom: 1px solid #ccc;
 
       &:hover {
         background-color: #f1f1f1;
