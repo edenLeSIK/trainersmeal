@@ -1,131 +1,107 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import { menus, MenuItem, MenuKey } from "../constants/menu";
 import Button from "../components/ui/Button";
-import { menus } from "../constants/menu";
 import sample from "../assets/menu/sample.jpg";
 
-type MenuKey = "balanceA" | "balanceB" | "dietA" | "dietB";
+const menuKeyMap: Record<string, MenuKey> = {
+  밸런스A: "balanceA",
+  밸런스B: "balanceB",
+  다이어트A: "dietA",
+  다이어트B: "dietB",
+};
 
 const Diet: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const state = location.state as {
     mealCount: number;
-    selectedMenus: MenuKey[];
+    selectedMenus: string[];
+    updatedMenus?: MenuItem[][];
   } | null;
 
   const mealCount = state?.mealCount ?? 1;
-  const selectedMenus = state?.selectedMenus ?? ["balanceA", "balanceB"];
+
+  const selectedMenus: MenuItem[][] =
+    (state?.updatedMenus ||
+      state?.selectedMenus.map((menuName) => {
+        const menuKey = menuKeyMap[menuName];
+        return menus[menuKey];
+      })) ??
+    [];
 
   const [activeTab, setActiveTab] = useState<number>(0);
-  // const [selectedOptions, setSelectedOptions] = useState<string[]>(
-  //   new Array(mealCount * 2).fill("")
-  // );
+  const [totalPrice, setTotalPrice] = useState<number>(0);
 
-  const selectedOptions = new Array(mealCount * 2).fill("");
-
-  // const handleOptionChange = (index: number, option: string) => {
-  //   const newOptions = [...selectedOptions];
-  //   newOptions[index] = option;
-  //   setSelectedOptions(newOptions);
-  // };
+  useEffect(() => {
+    const price = selectedMenus.reduce((sum, menuList) => {
+      return sum + menuList.length * 11000;
+    }, 0);
+    setTotalPrice(price);
+  }, [selectedMenus]);
 
   const handleOrder = () => {
-    console.log("Selected options:", selectedOptions);
-    navigate("/delivery-pickup", { state: { selectedOptions } });
+    navigate("/delivery-pickup", { state: { selectedMenus } });
   };
 
-  const handleOptionClick = (optionName: string) => {
-    navigate("/option", {
-      state: {
-        menuName: selectedMenus[activeTab],
-        selectedOption: optionName,
-      },
-    });
-  };
-
-  const nutrition: {
-    [key: string]: {
-      calories: number;
-      protein: string;
-      carbs: string;
-      fat: string;
-    };
-  } = {
-    "수비드 부채살 포케": {
-      calories: 450,
-      protein: "30g",
-      carbs: "50g",
-      fat: "15g",
-    },
-    "로스트치킨 펜네 포케": {
-      calories: 400,
-      protein: "35g",
-      carbs: "45g",
-      fat: "10g",
-    },
-    "수비드 돈안심 현미 포케": {
-      calories: 470,
-      protein: "40g",
-      carbs: "60g",
-      fat: "20g",
-    },
-    "훈제오리 포케": {
-      calories: 500,
-      protein: "45g",
-      carbs: "55g",
-      fat: "25g",
-    },
-    "수비드 돈목살 포케": {
-      calories: 520,
-      protein: "50g",
-      carbs: "40g",
-      fat: "30g",
-    },
-    "참치 두부면 포케": {
-      calories: 430,
-      protein: "35g",
-      carbs: "30g",
-      fat: "20g",
-    },
+  const handleOptionClick = (
+    menuIndex: number,
+    menuName: string | undefined
+  ) => {
+    if (menuName) {
+      const menuKey = menuKeyMap[menuName];
+      console.log("Navigating to option:", menuKey, menuIndex);
+      navigate(`/diet/${menuKey}/${menuIndex}`);
+    } else {
+      console.error("Menu name is undefined");
+    }
   };
 
   return (
     <Container>
       <div className="tabs">
-        {selectedMenus.map((menu, index) => (
+        {selectedMenus.map((_, index) => (
           <div
             key={index}
             className={`tab ${activeTab === index ? "active" : ""}`}
             onClick={() => setActiveTab(index)}
           >
-            {(index % mealCount) + 1}식 {menu} -{" "}
-            {Math.ceil((index + 1) / mealCount)}주차
+            {Math.ceil((index + 1) / mealCount)}주차 {(index % mealCount) + 1}식
           </div>
         ))}
       </div>
       <div className="option-list">
-        {menus[selectedMenus[activeTab]]?.map((option, optionIndex) => (
+        {selectedMenus[activeTab].map((menu, menuIndex) => (
           <div
-            key={optionIndex}
+            key={menuIndex}
             className="option"
-            onClick={() => handleOptionClick(option.name)}
+            onClick={() =>
+              handleOptionClick(menuIndex, state?.selectedMenus[activeTab])
+            }
           >
-            <img src={sample} alt={option.day} />
+            <img src={sample} alt={menu.name} />
             <div className="option-details">
-              <h4>{option.name}</h4>
-              <p>
-                칼로리: {nutrition[option.name]?.calories ?? "정보 없음"} kcal
-              </p>
-              <p>단백질: {nutrition[option.name]?.protein ?? "정보 없음"}</p>
-              <p>탄수화물: {nutrition[option.name]?.carbs ?? "정보 없음"}</p>
-              <p>지방: {nutrition[option.name]?.fat ?? "정보 없음"}</p>
+              <div className="menu-info">
+                <h4>{menu.name}</h4>
+                <p>칼로리: 정보 없음</p>
+                <p>탄수화물: 정보 없음</p>
+                <p>단백질: 정보 없음</p>
+                <p>지방: 정보 없음</p>
+                <p>나트륨: 정보 없음</p>
+                <p>당: 정보 없음</p>
+              </div>
+              <div className="menu-price">
+                <p>가격: 11,000원</p>
+              </div>
             </div>
           </div>
         ))}
       </div>
       <div className="button-wrapper">
+        <div className="total-price">
+          총 금액: {totalPrice.toLocaleString()}원
+        </div>
         <Button text="주문하기" onClick={handleOrder} color="main" />
       </div>
     </Container>
@@ -203,17 +179,37 @@ const Container = styled.div`
     }
 
     .option-details {
-      flex-grow: 1;
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
 
-      h4 {
-        font-size: 18px;
-        margin: 0 0 10px 0;
+      .menu-info {
+        flex-grow: 1;
+
+        h4 {
+          font-size: 18px;
+          margin: 0 0 10px 0;
+        }
+
+        p {
+          font-size: 16px;
+          margin: 0;
+          color: #666;
+        }
       }
 
-      p {
-        font-size: 16px;
-        margin: 0;
-        color: #666;
+      .menu-price {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        width: 100px;
+
+        p {
+          font-size: 18px;
+          font-weight: bold;
+          color: #333;
+          margin: 0;
+        }
       }
     }
   }
@@ -224,10 +220,17 @@ const Container = styled.div`
     background: white;
     border-top: 1px solid #eee;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
+    align-items: center;
     box-sizing: border-box;
     position: sticky;
     bottom: 0;
     left: 0;
+
+    .total-price {
+      font-size: 18px;
+      font-weight: bold;
+      color: #007bff;
+    }
   }
 `;

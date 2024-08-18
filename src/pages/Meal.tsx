@@ -36,10 +36,12 @@ const Meal: React.FC = () => {
       return;
     }
 
-    console.log("Selected meal count:", mealCount);
-    console.log("Selected menus:", selectedMenus);
-
-    navigate("/diet");
+    navigate("/diet", {
+      state: {
+        mealCount,
+        selectedMenus,
+      },
+    });
   };
 
   return (

@@ -1,23 +1,66 @@
-import { useState, ChangeEvent } from "react";
+import { useState, useEffect, ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { apiClient } from "../api";
 import UserCard from "../components/auth/UserCard";
 import InputComponent from "../components/ui/InputComponent";
 import Button from "../components/ui/Button";
 import styled from "styled-components";
-import { membersData } from "../constants/member";
 import profile from "../assets/auth/profile.jpg";
 
-const trainer = {
-  name: "트레이너1",
-  photo: profile,
-  gym: "cozy",
+// 트레이너 정보 가져오기
+const getUserInfo = async () => {
+  try {
+    const response = await apiClient.get(`/user-info`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching user info:", error);
+    throw error;
+  }
+};
+
+// 트레이너 해당하는 클라이언트 리스트 가져오기
+const getClients = async (userId: string) => {
+  try {
+    const response = await apiClient.get(`/clients?userId=${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching clients:", error);
+    throw error;
+  }
 };
 
 const Member: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [filteredMembers, setFilteredMembers] = useState(membersData);
+  const [filteredMembers, setFilteredMembers] = useState<any[]>([]);
+  const [userInfo, setUserInfo] = useState<any>(null);
+  const [allMembers, setAllMembers] = useState<any[]>([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const userData = await getUserInfo();
+        setUserInfo(userData);
+        console.log("User Info:", userData);
+
+        const clientsData = await getClients(userData.id);
+
+        const processedClients = clientsData.map((client: any) => ({
+          ...client,
+          isSubscribed: client.isSubscribed ?? false,
+        }));
+
+        setAllMembers(processedClients);
+        setFilteredMembers(processedClients);
+        console.log("Clients Data:", processedClients);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchUserInfo();
+  }, []);
 
   const handleFilterChange = (e: ChangeEvent<HTMLSelectElement>) => {
     const status = e.target.value;
@@ -32,10 +75,12 @@ const Member: React.FC = () => {
   };
 
   const filterMembers = (status: string, term: string) => {
-    let filtered = membersData;
+    let filtered = allMembers;
 
     if (status) {
-      filtered = filtered.filter((member) => member.status === status);
+      filtered = filtered.filter((member) =>
+        status === "Active" ? member.isSubscribed : !member.isSubscribed
+      );
     }
 
     if (term) {
@@ -63,7 +108,7 @@ const Member: React.FC = () => {
 
   return (
     <Container>
-      <UserCard user={trainer} />
+      {userInfo && <UserCard user={{ ...userInfo, photo: profile }} />}{" "}
       <div className="filter-search-bar">
         <select value={filterStatus} onChange={handleFilterChange}>
           <option value="">모두</option>
@@ -98,7 +143,11 @@ const Member: React.FC = () => {
             {filteredMembers.map((member) => (
               <tr key={member.id} onClick={() => handleMemberClick(member.id)}>
                 <td>
-                  <div className={`status-indicator ${member.status}`} />
+                  <div
+                    className={`status-indicator ${
+                      member.isSubscribed ? "Active" : "Inactive"
+                    }`}
+                  />
                 </td>
                 <td>{member.name}</td>
                 <td>{member.gender}</td>

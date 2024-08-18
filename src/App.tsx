@@ -27,7 +27,7 @@ function App() {
         <Route path="/bia/:id" element={<Bia />} />
         <Route path="/meal" element={<Meal />} />
         <Route path="/diet" element={<Diet />} />
-        <Route path="option" element={<Option />} />
+        <Route path="/diet/:menuKey/:menuIndex" element={<Option />} />
         <Route path="/delivery-pickup" element={<DeliveryPickup />} />
         <Route path="/delivery-date" element={<DeliveryDate />} />
         <Route path="/payment" element={<Payment />} />
