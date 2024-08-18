@@ -1,23 +1,67 @@
-import { useState, ChangeEvent } from "react";
+import { useState, useEffect, ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { apiClient } from "../api";
 import UserCard from "../components/auth/UserCard";
 import InputComponent from "../components/ui/InputComponent";
 import Button from "../components/ui/Button";
 import styled from "styled-components";
-import { membersData } from "../constants/member";
 import profile from "../assets/auth/profile.jpg";
 
-const trainer = {
-  name: "트레이너1",
-  photo: profile,
-  gym: "cozy",
+// 로컬스토리지에서 유저 정보 가져오기
+const getUserInfoFromLocalStorage = () => {
+  const user = localStorage.getItem("user");
+  return user ? JSON.parse(user) : null;
+};
+
+// 트레이너에 해당하는 모든 클라이언트 리스트 가져오기
+const getClients = async (trainerId: string) => {
+  try {
+    const response = await apiClient.get(`/clients?trainerId=${trainerId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching clients:", error);
+    throw error;
+  }
 };
 
 const Member: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [filteredMembers, setFilteredMembers] = useState(membersData);
+  const [filteredMembers, setFilteredMembers] = useState<any[]>([]);
+  const [userInfo, setUserInfo] = useState<any>(null);
+  const [allMembers, setAllMembers] = useState<any[]>([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        // 로컬 스토리지에서 유저 정보 가져오기
+        const userData = getUserInfoFromLocalStorage();
+        if (!userData) {
+          throw new Error("No user info found in localStorage");
+        }
+
+        setUserInfo(userData);
+        console.log("User Info:", userData);
+
+        // 트레이너에 해당하는 모든 클라이언트 정보 가져오기
+        const clientsData = await getClients(userData.trainer_id);
+
+        const processedClients = clientsData.map((client: any) => ({
+          ...client,
+          isSubscribed: client.isSubscribed ?? false,
+        }));
+
+        setAllMembers(processedClients);
+        setFilteredMembers(processedClients);
+        console.log("Clients Data:", processedClients);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchUserInfo();
+  }, []);
 
   const handleFilterChange = (e: ChangeEvent<HTMLSelectElement>) => {
     const status = e.target.value;
@@ -32,10 +76,12 @@ const Member: React.FC = () => {
   };
 
   const filterMembers = (status: string, term: string) => {
-    let filtered = membersData;
+    let filtered = allMembers;
 
     if (status) {
-      filtered = filtered.filter((member) => member.status === status);
+      filtered = filtered.filter((member) =>
+        status === "Active" ? member.isSubscribed : !member.isSubscribed
+      );
     }
 
     if (term) {
@@ -49,12 +95,12 @@ const Member: React.FC = () => {
     setFilteredMembers(filtered);
   };
 
-  const handleOrderClick = (id: string) => {
-    navigate(`/bia/${id}`);
+  const handleOrderClick = (clientId: string) => {
+    navigate(`/bia/${clientId}`);
   };
 
-  const handleMemberClick = (id: string) => {
-    navigate(`/member/${id}`);
+  const handleMemberClick = (clientId: string) => {
+    navigate(`/member/${clientId}`);
   };
 
   const handleAddMember = () => {
@@ -63,7 +109,7 @@ const Member: React.FC = () => {
 
   return (
     <Container>
-      <UserCard user={trainer} />
+      {userInfo && <UserCard user={{ ...userInfo, photo: profile }} />}{" "}
       <div className="filter-search-bar">
         <select value={filterStatus} onChange={handleFilterChange}>
           <option value="">모두</option>
@@ -96,19 +142,26 @@ const Member: React.FC = () => {
           </thead>
           <tbody>
             {filteredMembers.map((member) => (
-              <tr key={member.id} onClick={() => handleMemberClick(member.id)}>
+              <tr
+                key={member.client_id}
+                onClick={() => handleMemberClick(member.client_id)}
+              >
                 <td>
-                  <div className={`status-indicator ${member.status}`} />
+                  <div
+                    className={`status-indicator ${
+                      member.isSubscribed ? "Active" : "Inactive"
+                    }`}
+                  />
                 </td>
                 <td>{member.name}</td>
-                <td>{member.gender}</td>
+                <td>{member.gender === 1 ? "Male" : "Female"}</td>
                 <td>{member.goal}</td>
                 <td>
                   <Button
                     text="처방하기"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleOrderClick(member.id);
+                      handleOrderClick(member.client_id);
                     }}
                     className="order-button"
                     color="main"

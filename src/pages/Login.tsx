@@ -1,5 +1,6 @@
 import { useState, FormEvent, ChangeEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { apiClient } from "../api";
 import Input from "../components/ui/InputComponent";
 import Button from "../components/ui/Button";
 import styled from "styled-components";
@@ -11,14 +12,35 @@ import { lineGray, main } from "../styles/color";
 const Login = () => {
   const [id, setId] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const navigate = useNavigate();
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     try {
-      // localStorage.setItem("token", e.target.value);
-      console.log("ID:", id, "Password:", password);
+      const response = await apiClient.post("/login", {
+        username: id,
+        password: password,
+      });
+
+      const { token, user } = response.data;
+
+      // 로그인 성공 시 로컬 스토리지에 데이터 저장
+      localStorage.setItem("token", token);
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          gym_id: user.gym_id,
+          trainer_id: user.trainer_id,
+          username: user.username,
+        })
+      );
+
+      console.log("로그인 성공:", user);
+
+      navigate("/");
     } catch (error) {
-      console.error(error);
+      console.error("로그인 실패:", error);
+      alert("로그인에 실패했습니다. 다시 시도해주세요.");
     }
   };
 
@@ -51,14 +73,7 @@ const Login = () => {
           </div>
           <Link to="/forgot-password">비밀번호 찾기</Link>
         </div>
-        <Button
-          text="로그인"
-          onClick={() => {
-            console.log(1);
-          }}
-          className="login-button"
-          color="main"
-        />
+        <Button text="로그인" className="login-button" color="main" />
         <div className="link-wrapper">
           <Link to="/register">회원가입</Link>
           <span className="separator">|</span>

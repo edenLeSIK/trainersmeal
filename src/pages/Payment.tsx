@@ -1,22 +1,71 @@
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import { apiClient } from "../api";
 
 const Payment: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+
   const state = location.state as {
     selectedMenus?: { name: string; price: number; options: string[] }[];
-    deliveryType?: string;
+    deliveryType?: boolean;
     deliveryDate?: Date;
-  };
+    clientId?: string;
+  } | null;
 
-  const selectedMenus = state?.selectedMenus ?? [];
+  // state가 없거나 필수 데이터가 없을 경우 처리
+  if (!state || !state.clientId) {
+    alert("잘못된 접근입니다. 처음부터 다시 시도해주세요.");
+    console.log("232");
+
+    return null; // 컴포넌트를 렌더링하지 않음
+  }
+
+  const selectedMenus = state.selectedMenus ?? [];
   const totalPrice = selectedMenus.reduce((acc, menu) => acc + menu.price, 0);
 
+  const [paymentRequestId, setPaymentRequestId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // 결제 요청 ID를 생성하는 API 호출
+    const createPayment = async () => {
+      try {
+        const response = await apiClient.post("/payment", {
+          clientId: state.clientId,
+          amount: totalPrice,
+          deliveryType: state.deliveryType,
+          deliveryDate: state.deliveryDate,
+          menus: selectedMenus,
+        });
+
+        setPaymentRequestId(response.data.paymentRequestId); // PaymentRequestId를 백엔드에서 받아옴
+      } catch (error) {
+        console.error("결제 요청 생성에 실패했습니다:", error);
+        alert("결제 요청 생성에 실패했습니다. 다시 시도해주세요.");
+      }
+    };
+
+    createPayment();
+  }, [
+    state.clientId,
+    state.deliveryDate,
+    state.deliveryType,
+    totalPrice,
+    selectedMenus,
+  ]);
+
   const handlePayment = () => {
-    // 결제 처리 로직
+    if (!paymentRequestId) {
+      alert("결제 요청 ID를 생성하는데 실패했습니다.");
+      return;
+    }
+
+    // 실제 결제를 처리하는 페이지로 이동
     navigate("/confirm", {
       state: {
+        paymentRequestId,
+        clientId: state.clientId,
         deliveryType: state.deliveryType,
         deliveryDate: state.deliveryDate,
         totalPrice,
@@ -86,34 +135,6 @@ const Container = styled.div`
       padding: 15px 0;
       font-weight: bold;
       font-size: 20px;
-    }
-  }
-
-  .payment-info {
-    width: 100%;
-    margin-bottom: 20px;
-
-    h2 {
-      font-size: 22px;
-      margin-bottom: 10px;
-    }
-
-    .form-group {
-      margin-bottom: 15px;
-
-      label {
-        display: block;
-        margin-bottom: 5px;
-        font-size: 16px;
-      }
-
-      input {
-        width: 100%;
-        padding: 10px;
-        font-size: 16px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-      }
     }
   }
 
