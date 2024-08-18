@@ -1,98 +1,152 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { menus, MenuItem, MenuKey } from "../constants/menu";
+import { apiClient } from "../api";
 import Button from "../components/ui/Button";
 import sample from "../assets/menu/sample.jpg";
 
-const menuKeyMap: Record<string, MenuKey> = {
-  밸런스A: "balanceA",
-  밸런스B: "balanceB",
-  다이어트A: "dietA",
-  다이어트B: "dietB",
-};
+interface MenuItem {
+  id: number;
+  day: string;
+  menu_name: string;
+  nutrients: {
+    calories: number;
+    carbohydrate: number;
+    protein: number;
+    fat: number;
+    sodium: number;
+    sugar: number;
+  };
+  price: number;
+}
 
 const Diet: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const state = location.state as {
+    clientId: string;
     mealCount: number;
-    selectedMenus: string[];
-    updatedMenus?: MenuItem[][];
+    selectedMeals: string[]; // 선택된 식단의 ID 배열
+    updatedMenu?: MenuItem; // 새롭게 업데이트된 메뉴가 있을 경우
   } | null;
 
   const mealCount = state?.mealCount ?? 1;
-
-  const selectedMenus: MenuItem[][] =
-    (state?.updatedMenus ||
-      state?.selectedMenus.map((menuName) => {
-        const menuKey = menuKeyMap[menuName];
-        return menus[menuKey];
-      })) ??
-    [];
-
+  const [selectedMenus, setSelectedMenus] = useState<MenuItem[][]>([]);
   const [activeTab, setActiveTab] = useState<number>(0);
   const [totalPrice, setTotalPrice] = useState<number>(0);
 
+  // 이 부분은 실제 통신 후 에러 처리를 해야할 듯
+  // 이전 페이지인 meal에서 선택한 식단에 해당하는 meal_id를 가져와 그에 맞는 일주일치 메뉴를 불러와 데이터 뿌려주는 api
+  const fetchMenus = async (mealId: string) => {
+    try {
+      const response = await apiClient.get(`/menus/${mealId}`);
+      const menus = response.data;
+
+      if (Array.isArray(menus)) {
+        setSelectedMenus((prevMenus) => {
+          const updatedMenus = [...prevMenus];
+          updatedMenus[activeTab] = menus;
+          return updatedMenus;
+        });
+        console.log(`Menus for meal ${mealId} fetched successfully:`, menus);
+      } else {
+        console.error("Fetched menus is not an array:", menus);
+      }
+    } catch (error) {
+      console.error(`Failed to fetch menus for meal ${mealId}:`, error);
+      alert("메뉴 데이터를 불러오는데 실패했습니다. 다시 시도해주세요.");
+    }
+  };
+
+  useEffect(() => {
+    if (state?.updatedMenu) {
+      // Option 페이지에서 업데이트된 메뉴가 있으면 해당 메뉴를 반영합니다.
+      setSelectedMenus((prevMenus) => {
+        const updatedMenus = [...prevMenus];
+        const menuIndex = prevMenus[activeTab].findIndex(
+          (menu) => menu.id === state.updatedMenu?.id
+        );
+        if (menuIndex !== -1) {
+          updatedMenus[activeTab][menuIndex] = state.updatedMenu!;
+        }
+        return updatedMenus;
+      });
+    } else if (state?.selectedMeals) {
+      const currentMealId = state.selectedMeals[activeTab];
+      if (currentMealId) {
+        fetchMenus(currentMealId);
+      }
+    }
+  }, [activeTab, state?.selectedMeals, state?.updatedMenu]);
+
+  // 메뉴의 가격을 계산하여 totalPrice에 저장
   useEffect(() => {
     const price = selectedMenus.reduce((sum, menuList) => {
-      return sum + menuList.length * 11000;
+      return (
+        sum +
+        (menuList ? menuList.reduce((acc, menu) => acc + menu.price, 0) : 0)
+      );
     }, 0);
     setTotalPrice(price);
   }, [selectedMenus]);
 
-  const handleOrder = () => {
-    navigate("/delivery-pickup", { state: { selectedMenus } });
-  };
-
-  const handleOptionClick = (
-    menuIndex: number,
-    menuName: string | undefined
-  ) => {
-    if (menuName) {
-      const menuKey = menuKeyMap[menuName];
-      console.log("Navigating to option:", menuKey, menuIndex);
-      navigate(`/diet/${menuKey}/${menuIndex}`);
-    } else {
-      console.error("Menu name is undefined");
+  // 탭을 클릭했을 때 해당 탭의 메뉴를 불러옴
+  const handleTabClick = (index: number) => {
+    setActiveTab(index);
+    const currentMealId = state?.selectedMeals[index];
+    if (currentMealId) {
+      fetchMenus(currentMealId); // 해당 식단의 ID를 사용하여 메뉴 데이터 불러옴
     }
   };
 
+  // 옵션 페이지로 이동
+  const handleOptionClick = (menuId: number) => {
+    navigate(`/option/${menuId}`, { state: { menuId } });
+  };
+
+  // 주문 페이지로 이동할 때 최종 메뉴와 총 금액을 전달
+  const handleOrder = () => {
+    navigate("/delivery-pickup", {
+      state: {
+        clientId: state?.clientId,
+        selectedMenus,
+        totalPrice, // 결제해야 할 총 금액을 함께 전달
+      },
+    });
+  };
   return (
     <Container>
       <div className="tabs">
-        {selectedMenus.map((_, index) => (
+        {state?.selectedMeals.map((_, index) => (
           <div
             key={index}
             className={`tab ${activeTab === index ? "active" : ""}`}
-            onClick={() => setActiveTab(index)}
+            onClick={() => handleTabClick(index)}
           >
             {Math.ceil((index + 1) / mealCount)}주차 {(index % mealCount) + 1}식
           </div>
         ))}
       </div>
       <div className="option-list">
-        {selectedMenus[activeTab].map((menu, menuIndex) => (
+        {(selectedMenus[activeTab] || []).map((menu, menuIndex) => (
           <div
             key={menuIndex}
             className="option"
-            onClick={() =>
-              handleOptionClick(menuIndex, state?.selectedMenus[activeTab])
-            }
+            onClick={() => handleOptionClick(menu.id)}
           >
-            <img src={sample} alt={menu.name} />
+            <img src={sample} alt={menu.menu_name} />
             <div className="option-details">
               <div className="menu-info">
-                <h4>{menu.name}</h4>
-                <p>칼로리: 정보 없음</p>
-                <p>탄수화물: 정보 없음</p>
-                <p>단백질: 정보 없음</p>
-                <p>지방: 정보 없음</p>
-                <p>나트륨: 정보 없음</p>
-                <p>당: 정보 없음</p>
+                <h4>{menu.menu_name}</h4>
+                <p>칼로리: {menu.nutrients.calories} kcal</p>
+                <p>탄수화물: {menu.nutrients.carbohydrate} g</p>
+                <p>단백질: {menu.nutrients.protein} g</p>
+                <p>지방: {menu.nutrients.fat} g</p>
+                <p>나트륨: {menu.nutrients.sodium} mg</p>
+                <p>당: {menu.nutrients.sugar} g</p>
               </div>
               <div className="menu-price">
-                <p>가격: 11,000원</p>
+                <p>가격: {menu.price.toLocaleString()}원</p>
               </div>
             </div>
           </div>

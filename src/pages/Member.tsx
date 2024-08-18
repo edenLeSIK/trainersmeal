@@ -7,21 +7,16 @@ import Button from "../components/ui/Button";
 import styled from "styled-components";
 import profile from "../assets/auth/profile.jpg";
 
-// 트레이너 정보 가져오기
-const getUserInfo = async () => {
-  try {
-    const response = await apiClient.get(`/user-info`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching user info:", error);
-    throw error;
-  }
+// 로컬스토리지에서 유저 정보 가져오기
+const getUserInfoFromLocalStorage = () => {
+  const user = localStorage.getItem("user");
+  return user ? JSON.parse(user) : null;
 };
 
-// 트레이너 해당하는 클라이언트 리스트 가져오기
-const getClients = async (userId: string) => {
+// 트레이너에 해당하는 모든 클라이언트 리스트 가져오기
+const getClients = async (trainerId: string) => {
   try {
-    const response = await apiClient.get(`/clients?userId=${userId}`);
+    const response = await apiClient.get(`/clients?trainerId=${trainerId}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching clients:", error);
@@ -40,11 +35,17 @@ const Member: React.FC = () => {
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        const userData = await getUserInfo();
+        // 로컬 스토리지에서 유저 정보 가져오기
+        const userData = getUserInfoFromLocalStorage();
+        if (!userData) {
+          throw new Error("No user info found in localStorage");
+        }
+
         setUserInfo(userData);
         console.log("User Info:", userData);
 
-        const clientsData = await getClients(userData.id);
+        // 트레이너에 해당하는 모든 클라이언트 정보 가져오기
+        const clientsData = await getClients(userData.trainer_id);
 
         const processedClients = clientsData.map((client: any) => ({
           ...client,
@@ -94,12 +95,12 @@ const Member: React.FC = () => {
     setFilteredMembers(filtered);
   };
 
-  const handleOrderClick = (id: string) => {
-    navigate(`/bia/${id}`);
+  const handleOrderClick = (clientId: string) => {
+    navigate(`/bia/${clientId}`);
   };
 
-  const handleMemberClick = (id: string) => {
-    navigate(`/member/${id}`);
+  const handleMemberClick = (clientId: string) => {
+    navigate(`/member/${clientId}`);
   };
 
   const handleAddMember = () => {
@@ -141,7 +142,10 @@ const Member: React.FC = () => {
           </thead>
           <tbody>
             {filteredMembers.map((member) => (
-              <tr key={member.id} onClick={() => handleMemberClick(member.id)}>
+              <tr
+                key={member.client_id}
+                onClick={() => handleMemberClick(member.client_id)}
+              >
                 <td>
                   <div
                     className={`status-indicator ${
@@ -150,14 +154,14 @@ const Member: React.FC = () => {
                   />
                 </td>
                 <td>{member.name}</td>
-                <td>{member.gender}</td>
+                <td>{member.gender === 1 ? "Male" : "Female"}</td>
                 <td>{member.goal}</td>
                 <td>
                   <Button
                     text="처방하기"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleOrderClick(member.id);
+                      handleOrderClick(member.client_id);
                     }}
                     className="order-button"
                     color="main"
