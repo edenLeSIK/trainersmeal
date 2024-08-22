@@ -16,6 +16,9 @@ const Add: React.FC = () => {
   const [birthdate, setBirthdate] = useState<string>("");
   const [height, setHeight] = useState<string>("");
   const [weight, setWeight] = useState<string>("");
+  const [muscleMass, setMuscleMass] = useState<string>("");
+  const [bodyFatMass, setBodyFatMass] = useState<string>("");
+  const [bodyFatPercentage, setBodyFatPercentage] = useState<string>("");
   const [activityLevel, setActivityLevel] = useState<string>(
     "적당히 활동적 (주 3~5일 운동)"
   );
@@ -33,6 +36,9 @@ const Add: React.FC = () => {
       birthdate,
       height,
       weight,
+      muscleMass, // 추가된 데이터
+      bodyFatMass, // 추가된 데이터
+      bodyFatPercentage, // 추가된 데이터
       activityLevel,
       goal,
       notes,
@@ -76,6 +82,12 @@ const Add: React.FC = () => {
             setHeight={setHeight}
             weight={weight}
             setWeight={setWeight}
+            muscleMass={muscleMass}
+            setMuscleMass={setMuscleMass}
+            bodyFatMass={bodyFatMass}
+            setBodyFatMass={setBodyFatMass}
+            bodyFatPercentage={bodyFatPercentage}
+            setBodyFatPercentage={setBodyFatPercentage}
             onNext={() => setStep(3)}
             onPrevious={() => setStep(1)}
           />

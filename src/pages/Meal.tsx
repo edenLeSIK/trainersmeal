@@ -1,25 +1,37 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 import { apiClient } from "../api";
 import Button from "../components/ui/Button";
 
-// 상수로 식단 옵션 리스트 만들긴 했는데, 서버에서 리스트 불러와서 보여주어야할 것 같음
-const mealOptions = [
-  { id: "1", name: "밸런스A" },
-  { id: "2", name: "밸런스B" },
-  { id: "3", name: "다이어트A" },
-  { id: "4", name: "다이어트B" },
-];
+interface MealOption {
+  meal_id: string;
+  group: string;
+}
 
 const Meal: React.FC = () => {
   const [mealCount, setMealCount] = useState<number | null>(null);
+  const [mealOptions, setMealOptions] = useState<MealOption[]>([]);
   const [week1Meal1, setWeek1Meal1] = useState<string>("");
   const [week1Meal2, setWeek1Meal2] = useState<string>("");
   const [week2Meal1, setWeek2Meal1] = useState<string>("");
   const [week2Meal2, setWeek2Meal2] = useState<string>("");
   const navigate = useNavigate();
   const { clientId } = useParams<{ clientId: string }>();
+
+  useEffect(() => {
+    const fetchMealOptions = async () => {
+      try {
+        const response = await apiClient.get("/order/meal");
+        setMealOptions(response.data);
+      } catch (error) {
+        console.error("식단 옵션을 불러오는데 실패했습니다:", error);
+        alert("식단 옵션을 불러오는데 실패했습니다. 다시 시도해주세요.");
+      }
+    };
+
+    fetchMealOptions();
+  }, []);
 
   const handleNext = async () => {
     if (mealCount === null) {
@@ -105,8 +117,8 @@ const Meal: React.FC = () => {
             >
               <option value="">메뉴를 선택하세요</option>
               {mealOptions.map((menu) => (
-                <option key={menu.id} value={menu.id}>
-                  {menu.name}
+                <option key={menu.meal_id} value={menu.meal_id}>
+                  {menu.group}
                 </option>
               ))}
             </select>
@@ -120,8 +132,8 @@ const Meal: React.FC = () => {
               >
                 <option value="">메뉴를 선택하세요</option>
                 {mealOptions.map((menu) => (
-                  <option key={menu.id} value={menu.id}>
-                    {menu.name}
+                  <option key={menu.meal_id} value={menu.meal_id}>
+                    {menu.group}
                   </option>
                 ))}
               </select>
@@ -135,8 +147,8 @@ const Meal: React.FC = () => {
             >
               <option value="">메뉴를 선택하세요</option>
               {mealOptions.map((menu) => (
-                <option key={menu.id} value={menu.id}>
-                  {menu.name}
+                <option key={menu.meal_id} value={menu.meal_id}>
+                  {menu.group}
                 </option>
               ))}
             </select>
@@ -150,8 +162,8 @@ const Meal: React.FC = () => {
               >
                 <option value="">메뉴를 선택하세요</option>
                 {mealOptions.map((menu) => (
-                  <option key={menu.id} value={menu.id}>
-                    {menu.name}
+                  <option key={menu.meal_id} value={menu.meal_id}>
+                    {menu.group}
                   </option>
                 ))}
               </select>

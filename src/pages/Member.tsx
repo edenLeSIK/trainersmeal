@@ -1,264 +1,161 @@
-import { useState, useEffect, ChangeEvent } from "react";
-import { useNavigate } from "react-router-dom";
-import { apiClient } from "../api";
-import UserCard from "../components/auth/UserCard";
-import InputComponent from "../components/ui/InputComponent";
-import Button from "../components/ui/Button";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import profile from "../assets/auth/profile.jpg";
+import { apiClient } from "../api";
+import Button from "../components/ui/Button";
 
-// 로컬스토리지에서 유저 정보 가져오기
-const getUserInfoFromLocalStorage = () => {
-  const user = localStorage.getItem("user");
-  return user ? JSON.parse(user) : null;
-};
+interface MemberDetailProps {
+  client_id: string;
+  name: string;
+  gender: number;
+  birthdate: string;
+  height: number;
+  weight: number;
+  muscleMass: number;
+  bodyFatMass: number;
+  bodyFatPercentage: number;
+  activityLevel: string;
+  goal: string;
+  address: string;
+  detailAddress: string;
+  deliveryMessage: string;
+  entryMethod: string;
+  entryPassword: string;
+}
 
-// 트레이너에 해당하는 모든 클라이언트 리스트 가져오기
-const getClients = async (trainerId: string) => {
-  try {
-    const response = await apiClient.get(`/clients?trainerId=${trainerId}`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching clients:", error);
-    throw error;
-  }
-};
-
-const Member: React.FC = () => {
-  const [filterStatus, setFilterStatus] = useState<string>("");
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [filteredMembers, setFilteredMembers] = useState<any[]>([]);
-  const [userInfo, setUserInfo] = useState<any>(null);
-  const [allMembers, setAllMembers] = useState<any[]>([]);
+const MemberDetail: React.FC = () => {
+  const { clientId } = useParams<{ clientId: string }>();
+  const [memberDetail, setMemberDetail] = useState<MemberDetailProps | null>(
+    null
+  );
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUserInfo = async () => {
+    const fetchMemberDetail = async () => {
       try {
-        // 로컬 스토리지에서 유저 정보 가져오기
-        const userData = getUserInfoFromLocalStorage();
-        if (!userData) {
-          throw new Error("No user info found in localStorage");
-        }
-
-        setUserInfo(userData);
-        console.log("User Info:", userData);
-
-        // 트레이너에 해당하는 모든 클라이언트 정보 가져오기
-        const clientsData = await getClients(userData.trainer_id);
-
-        const processedClients = clientsData.map((client: any) => ({
-          ...client,
-          isSubscribed: client.isSubscribed ?? false,
-        }));
-
-        setAllMembers(processedClients);
-        setFilteredMembers(processedClients);
-        console.log("Clients Data:", processedClients);
+        const response = await apiClient.get(`/clients/${clientId}`);
+        setMemberDetail(response.data);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching member details:", error);
+        alert("회원 정보를 가져오는데 실패했습니다.");
       }
     };
 
-    fetchUserInfo();
-  }, []);
+    fetchMemberDetail();
+  }, [clientId]);
 
-  const handleFilterChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    const status = e.target.value;
-    setFilterStatus(status);
-    filterMembers(status, searchTerm);
-  };
+  if (!memberDetail) {
+    return <div>Loading...</div>;
+  }
 
-  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const term = e.target.value;
-    setSearchTerm(term);
-    filterMembers(filterStatus, term);
-  };
-
-  const filterMembers = (status: string, term: string) => {
-    let filtered = allMembers;
-
-    if (status) {
-      filtered = filtered.filter((member) =>
-        status === "Active" ? member.isSubscribed : !member.isSubscribed
-      );
-    }
-
-    if (term) {
-      filtered = filtered.filter(
-        (member) =>
-          member.name.toLowerCase().includes(term.toLowerCase()) ||
-          member.goal.toLowerCase().includes(term.toLowerCase())
-      );
-    }
-
-    setFilteredMembers(filtered);
-  };
-
-  const handleOrderClick = (clientId: string) => {
-    navigate(`/bia/${clientId}`);
-  };
-
-  const handleMemberClick = (clientId: string) => {
-    navigate(`/member/${clientId}`);
-  };
-
-  const handleAddMember = () => {
-    navigate(`/add`);
+  const handleEditClick = () => {
+    navigate(`/edit/${memberDetail.client_id}`);
   };
 
   return (
     <Container>
-      {userInfo && <UserCard user={{ ...userInfo, photo: profile }} />}{" "}
-      <div className="filter-search-bar">
-        <select value={filterStatus} onChange={handleFilterChange}>
-          <option value="">모두</option>
-          <option value="Active">구독중</option>
-          <option value="Inactive">구독안함</option>
-        </select>
-        <InputComponent
-          type="text"
-          placeholder="회원명을 입력하세요"
-          value={searchTerm}
-          onChange={handleSearchChange}
-        />
-        <Button
-          text="등록"
-          onClick={handleAddMember}
-          color="main"
-          className="add-member-button"
-        />
+      <h1>{memberDetail.name}님의 정보</h1>
+      <div className="info-group">
+        <h2>개인 정보</h2>
+        <p>
+          <strong>이름:</strong> {memberDetail.name}
+        </p>
+        <p>
+          <strong>성별:</strong> {memberDetail.gender === 1 ? "남" : "여"}
+        </p>
+        <p>
+          <strong>생년월일:</strong> {memberDetail.birthdate}
+        </p>
       </div>
-      <div className="table-container">
-        <table className="member-table">
-          <thead>
-            <tr>
-              <th>구독중</th>
-              <th>이름</th>
-              <th>성별</th>
-              <th>목표</th>
-              <th>주문하기</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredMembers.map((member) => (
-              <tr
-                key={member.client_id}
-                onClick={() => handleMemberClick(member.client_id)}
-              >
-                <td>
-                  <div
-                    className={`status-indicator ${
-                      member.isSubscribed ? "Active" : "Inactive"
-                    }`}
-                  />
-                </td>
-                <td>{member.name}</td>
-                <td>{member.gender === 1 ? "Male" : "Female"}</td>
-                <td>{member.goal}</td>
-                <td>
-                  <Button
-                    text="처방하기"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOrderClick(member.client_id);
-                    }}
-                    className="order-button"
-                    color="main"
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="info-group">
+        <h2>신체 정보</h2>
+        <p>
+          <strong>키:</strong> {memberDetail.height} cm
+        </p>
+        <p>
+          <strong>체중:</strong> {memberDetail.weight} kg
+        </p>
+        <p>
+          <strong>골격근량:</strong> {memberDetail.muscleMass} kg
+        </p>
+        <p>
+          <strong>체지방량:</strong> {memberDetail.bodyFatMass} kg
+        </p>
+        <p>
+          <strong>체지방률:</strong> {memberDetail.bodyFatPercentage} %
+        </p>
+      </div>
+      <div className="info-group">
+        <h2>목표 및 활동 수준</h2>
+        <p>
+          <strong>활동 수준:</strong> {memberDetail.activityLevel}
+        </p>
+        <p>
+          <strong>목표:</strong> {memberDetail.goal}
+        </p>
+      </div>
+      <div className="info-group">
+        <h2>배송 정보</h2>
+        <p>
+          <strong>주소:</strong> {memberDetail.address}
+        </p>
+        <p>
+          <strong>상세 주소:</strong> {memberDetail.detailAddress}
+        </p>
+        <p>
+          <strong>배송 메세지:</strong> {memberDetail.deliveryMessage}
+        </p>
+        <p>
+          <strong>출입 방법:</strong> {memberDetail.entryMethod}
+        </p>
+        {memberDetail.entryMethod === "password" && (
+          <p>
+            <strong>출입 비밀번호:</strong> {memberDetail.entryPassword}
+          </p>
+        )}
+      </div>
+      <div className="button-wrapper">
+        <Button text="뒤로 가기" onClick={() => navigate(-1)} color="sub" />
+        <Button text="수정하기" onClick={handleEditClick} color="main" />
       </div>
     </Container>
   );
 };
 
-export default Member;
+export default MemberDetail;
 
 const Container = styled.div`
   padding: 20px;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
+  max-width: 600px;
+  margin: 0 auto;
 
-  .filter-search-bar {
+  h1 {
     margin-bottom: 20px;
+    text-align: center;
+    font-size: 30px;
+  }
+
+  .info-group {
+    margin-bottom: 20px;
+
+    h2 {
+      font-size: 25px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 20px;
+      margin: 5px 0;
+    }
+
+    strong {
+      font-weight: bold;
+    }
+  }
+
+  .button-wrapper {
     display: flex;
-    gap: 10px;
-
-    select,
-    input {
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-
-    input {
-      flex: 1;
-    }
-
-    .add-member-button {
-      padding: 10px 20px;
-      font-size: 16px;
-      margin-left: 10px;
-    }
-  }
-
-  .table-container {
-    flex: 1;
-    overflow-y: auto;
-    border-radius: 5px;
-  }
-
-  .member-table {
-    width: 100%;
-    border-collapse: collapse;
-
-    th,
-    td {
-      padding: 10px;
-      text-align: left;
-      border-left: 1px solid #ccc;
-      border-right: 1px solid #ccc;
-    }
-
-    th {
-      background-color: #f4f4f4;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-
-    tbody tr {
-      cursor: pointer;
-      border-bottom: 1px solid #ccc;
-
-      &:hover {
-        background-color: #f1f1f1;
-      }
-    }
-
-    .order-button {
-      padding: 5px 10px;
-      font-size: 14px;
-    }
-  }
-
-  .status-indicator {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-
-    &.Active {
-      background-color: green;
-    }
-
-    &.Inactive {
-      background-color: red;
-    }
+    justify-content: space-between;
+    margin-top: 20px;
   }
 `;
