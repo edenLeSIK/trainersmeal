@@ -117,6 +117,7 @@ const Member: React.FC = () => {
       <div className="button-wrapper">
         <Button text="뒤로 가기" onClick={() => navigate(-1)} color="sub" />
         <Button text="수정하기" onClick={handleEditClick} color="main" />
+
       </div>
     </Container>
   );
@@ -131,6 +132,7 @@ const Container = styled.div`
 
   h1 {
     margin-bottom: 20px;
+
     text-align: center;
     font-size: 30px;
   }
@@ -146,6 +148,7 @@ const Container = styled.div`
     p {
       font-size: 20px;
       margin: 5px 0;
+
     }
 
     strong {

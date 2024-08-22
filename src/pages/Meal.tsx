@@ -4,7 +4,6 @@ import styled from "styled-components";
 import { apiClient } from "../api";
 import Button from "../components/ui/Button";
 
-
 interface MealOption {
   meal_id: string;
   group: string;
@@ -19,7 +18,7 @@ const Meal: React.FC = () => {
   const [week2Meal2, setWeek2Meal2] = useState<string>("");
   const navigate = useNavigate();
   const { clientId } = useParams<{ clientId: string }>();
-
+  
   useEffect(() => {
     const fetchMealOptions = async () => {
       try {
