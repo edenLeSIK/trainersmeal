@@ -1,131 +1,161 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import { apiClient } from "../api";
 import Button from "../components/ui/Button";
-import { menus } from "../constants/menu";
 import sample from "../assets/menu/sample.jpg";
 
-type MenuKey = "balanceA" | "balanceB" | "dietA" | "dietB";
+interface MenuItem {
+  id: number;
+  day: string;
+  menu_name: string;
+  nutrients: {
+    calories: number;
+    carbohydrate: number;
+    protein: number;
+    fat: number;
+    sodium: number;
+    sugar: number;
+  };
+  price: number;
+}
 
 const Diet: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const state = location.state as {
+    clientId: string;
     mealCount: number;
-    selectedMenus: MenuKey[];
+    selectedMeals: string[]; // 선택된 식단의 ID 배열
+    updatedMenu?: MenuItem; // 새롭게 업데이트된 메뉴가 있을 경우
   } | null;
 
   const mealCount = state?.mealCount ?? 1;
-  const selectedMenus = state?.selectedMenus ?? ["balanceA", "balanceB"];
-
+  const [selectedMenus, setSelectedMenus] = useState<MenuItem[][]>([]);
   const [activeTab, setActiveTab] = useState<number>(0);
-  // const [selectedOptions, setSelectedOptions] = useState<string[]>(
-  //   new Array(mealCount * 2).fill("")
-  // );
+  const [totalPrice, setTotalPrice] = useState<number>(0);
 
-  const selectedOptions = new Array(mealCount * 2).fill("");
+  // 이 부분은 실제 통신 후 에러 처리를 해야할 듯
+  // 이전 페이지인 meal에서 선택한 식단에 해당하는 meal_id를 가져와 그에 맞는 일주일치 메뉴를 불러와 데이터 뿌려주는 api
+  const fetchMenus = async (mealId: string) => {
+    try {
+      const response = await apiClient.get(`/menus/${mealId}`);
+      const menus = response.data;
 
-  // const handleOptionChange = (index: number, option: string) => {
-  //   const newOptions = [...selectedOptions];
-  //   newOptions[index] = option;
-  //   setSelectedOptions(newOptions);
-  // };
-
-  const handleOrder = () => {
-    console.log("Selected options:", selectedOptions);
-    navigate("/delivery-pickup", { state: { selectedOptions } });
+      if (Array.isArray(menus)) {
+        setSelectedMenus((prevMenus) => {
+          const updatedMenus = [...prevMenus];
+          updatedMenus[activeTab] = menus;
+          return updatedMenus;
+        });
+        console.log(`Menus for meal ${mealId} fetched successfully:`, menus);
+      } else {
+        console.error("Fetched menus is not an array:", menus);
+      }
+    } catch (error) {
+      console.error(`Failed to fetch menus for meal ${mealId}:`, error);
+      alert("메뉴 데이터를 불러오는데 실패했습니다. 다시 시도해주세요.");
+    }
   };
 
-  const handleOptionClick = (optionName: string) => {
-    navigate("/option", {
+  useEffect(() => {
+    if (state?.updatedMenu) {
+      // Option 페이지에서 업데이트된 메뉴가 있으면 해당 메뉴를 반영합니다.
+      setSelectedMenus((prevMenus) => {
+        const updatedMenus = [...prevMenus];
+        const menuIndex = prevMenus[activeTab].findIndex(
+          (menu) => menu.id === state.updatedMenu?.id
+        );
+        if (menuIndex !== -1) {
+          updatedMenus[activeTab][menuIndex] = state.updatedMenu!;
+        }
+        return updatedMenus;
+      });
+    } else if (state?.selectedMeals) {
+      const currentMealId = state.selectedMeals[activeTab];
+      if (currentMealId) {
+        fetchMenus(currentMealId);
+      }
+    }
+  }, [activeTab, state?.selectedMeals, state?.updatedMenu]);
+
+  // 메뉴의 가격을 계산하여 totalPrice에 저장
+  useEffect(() => {
+    const price = selectedMenus.reduce((sum, menuList) => {
+      return (
+        sum +
+        (menuList ? menuList.reduce((acc, menu) => acc + menu.price, 0) : 0)
+      );
+    }, 0);
+    setTotalPrice(price);
+  }, [selectedMenus]);
+
+  // 탭을 클릭했을 때 해당 탭의 메뉴를 불러옴
+  const handleTabClick = (index: number) => {
+    setActiveTab(index);
+    const currentMealId = state?.selectedMeals[index];
+    if (currentMealId) {
+      fetchMenus(currentMealId); // 해당 식단의 ID를 사용하여 메뉴 데이터 불러옴
+    }
+  };
+
+  // 옵션 페이지로 이동
+  const handleOptionClick = (menuId: number) => {
+    navigate(`/option/${menuId}`, { state: { menuId } });
+  };
+
+  // 주문 페이지로 이동할 때 최종 메뉴와 총 금액을 전달
+  const handleOrder = () => {
+    navigate("/delivery-pickup", {
       state: {
-        menuName: selectedMenus[activeTab],
-        selectedOption: optionName,
+        clientId: state?.clientId,
+        selectedMenus,
+        totalPrice, // 결제해야 할 총 금액을 함께 전달
       },
     });
   };
-
-  const nutrition: {
-    [key: string]: {
-      calories: number;
-      protein: string;
-      carbs: string;
-      fat: string;
-    };
-  } = {
-    "수비드 부채살 포케": {
-      calories: 450,
-      protein: "30g",
-      carbs: "50g",
-      fat: "15g",
-    },
-    "로스트치킨 펜네 포케": {
-      calories: 400,
-      protein: "35g",
-      carbs: "45g",
-      fat: "10g",
-    },
-    "수비드 돈안심 현미 포케": {
-      calories: 470,
-      protein: "40g",
-      carbs: "60g",
-      fat: "20g",
-    },
-    "훈제오리 포케": {
-      calories: 500,
-      protein: "45g",
-      carbs: "55g",
-      fat: "25g",
-    },
-    "수비드 돈목살 포케": {
-      calories: 520,
-      protein: "50g",
-      carbs: "40g",
-      fat: "30g",
-    },
-    "참치 두부면 포케": {
-      calories: 430,
-      protein: "35g",
-      carbs: "30g",
-      fat: "20g",
-    },
-  };
-
   return (
     <Container>
       <div className="tabs">
-        {selectedMenus.map((menu, index) => (
+        {state?.selectedMeals.map((_, index) => (
           <div
             key={index}
             className={`tab ${activeTab === index ? "active" : ""}`}
-            onClick={() => setActiveTab(index)}
+            onClick={() => handleTabClick(index)}
           >
-            {(index % mealCount) + 1}식 {menu} -{" "}
-            {Math.ceil((index + 1) / mealCount)}주차
+            {Math.ceil((index + 1) / mealCount)}주차 {(index % mealCount) + 1}식
           </div>
         ))}
       </div>
       <div className="option-list">
-        {menus[selectedMenus[activeTab]]?.map((option, optionIndex) => (
+        {(selectedMenus[activeTab] || []).map((menu, menuIndex) => (
           <div
-            key={optionIndex}
+            key={menuIndex}
             className="option"
-            onClick={() => handleOptionClick(option.name)}
+            onClick={() => handleOptionClick(menu.id)}
           >
-            <img src={sample} alt={option.day} />
+            <img src={sample} alt={menu.menu_name} />
             <div className="option-details">
-              <h4>{option.name}</h4>
-              <p>
-                칼로리: {nutrition[option.name]?.calories ?? "정보 없음"} kcal
-              </p>
-              <p>단백질: {nutrition[option.name]?.protein ?? "정보 없음"}</p>
-              <p>탄수화물: {nutrition[option.name]?.carbs ?? "정보 없음"}</p>
-              <p>지방: {nutrition[option.name]?.fat ?? "정보 없음"}</p>
+              <div className="menu-info">
+                <h4>{menu.menu_name}</h4>
+                <p>칼로리: {menu.nutrients.calories} kcal</p>
+                <p>탄수화물: {menu.nutrients.carbohydrate} g</p>
+                <p>단백질: {menu.nutrients.protein} g</p>
+                <p>지방: {menu.nutrients.fat} g</p>
+                <p>나트륨: {menu.nutrients.sodium} mg</p>
+                <p>당: {menu.nutrients.sugar} g</p>
+              </div>
+              <div className="menu-price">
+                <p>가격: {menu.price.toLocaleString()}원</p>
+              </div>
             </div>
           </div>
         ))}
       </div>
       <div className="button-wrapper">
+        <div className="total-price">
+          총 금액: {totalPrice.toLocaleString()}원
+        </div>
         <Button text="주문하기" onClick={handleOrder} color="main" />
       </div>
     </Container>
@@ -203,17 +233,37 @@ const Container = styled.div`
     }
 
     .option-details {
-      flex-grow: 1;
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
 
-      h4 {
-        font-size: 18px;
-        margin: 0 0 10px 0;
+      .menu-info {
+        flex-grow: 1;
+
+        h4 {
+          font-size: 18px;
+          margin: 0 0 10px 0;
+        }
+
+        p {
+          font-size: 16px;
+          margin: 0;
+          color: #666;
+        }
       }
 
-      p {
-        font-size: 16px;
-        margin: 0;
-        color: #666;
+      .menu-price {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        width: 100px;
+
+        p {
+          font-size: 18px;
+          font-weight: bold;
+          color: #333;
+          margin: 0;
+        }
       }
     }
   }
@@ -224,10 +274,17 @@ const Container = styled.div`
     background: white;
     border-top: 1px solid #eee;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
+    align-items: center;
     box-sizing: border-box;
     position: sticky;
     bottom: 0;
     left: 0;
+
+    .total-price {
+      font-size: 18px;
+      font-weight: bold;
+      color: #007bff;
+    }
   }
 `;

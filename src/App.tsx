@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 // import { Header } from "./layout";
-import Home from "./pages/Member";
+import Home from "./pages/Home";
+import Member from "./pages/Member";
 import Login from "./pages/Login";
 import Add from "./pages/Add";
 import Register from "./pages/Register";
@@ -21,13 +22,14 @@ function App() {
       {/* <Header /> */}
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/member/:id" element={<Member />} />
         <Route path="/login" element={<Login />} />
         <Route path="/add" element={<Add />} />
         <Route path="/register" element={<Register />} />
         <Route path="/bia/:id" element={<Bia />} />
-        <Route path="/meal" element={<Meal />} />
+        <Route path="/meal/:id" element={<Meal />} />
         <Route path="/diet" element={<Diet />} />
-        <Route path="option" element={<Option />} />
+        <Route path="option/:id" element={<Option />} />
         <Route path="/delivery-pickup" element={<DeliveryPickup />} />
         <Route path="/delivery-date" element={<DeliveryDate />} />
         <Route path="/payment" element={<Payment />} />

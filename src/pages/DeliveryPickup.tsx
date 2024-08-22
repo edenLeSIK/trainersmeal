@@ -1,14 +1,32 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import styled from "styled-components";
 
 const DeliveryPickup: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Diet 페이지에서 전달된 상태값을 가져옵니다.
+  const state = location.state as {
+    selectedMenus: any[]; // 실제 메뉴 리스트 타입으로 변경 필요
+    totalPrice: number;
+    clientId: string;
+  };
+
   const [selectedOption, setSelectedOption] = useState<string>("");
 
   const handleSelect = (option: string) => {
     setSelectedOption(option);
-    navigate("/delivery-date", { state: { deliveryType: option } });
+    const deliveryType = option === "delivery";
+    // 메뉴 리스트와 함께 deliveryType을 delivery-date 페이지로 전달합니다.
+    navigate("/delivery-date", {
+      state: {
+        deliveryType: deliveryType,
+        selectedMenus: state.selectedMenus,
+        totalPrice: state.totalPrice,
+        clientId: state.clientId,
+      },
+    });
   };
 
   return (

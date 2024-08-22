@@ -1,11 +1,10 @@
 import { useState } from "react";
+import { apiClient } from "../api";
 import PersonalInfo from "../components/member/PersonalInfo";
 import PhysicalInfo from "../components/member/PhysicalInfo";
 import GoalActivityInfo from "../components/member/GoalActivityInfo";
 import AddressDeliveryInfo from "../components/member/AddressDeliveryInfo";
 import styled from "styled-components";
-import axios from "axios";
-import MockAdapter from "axios-mock-adapter";
 
 const Add: React.FC = () => {
   const [step, setStep] = useState<number>(1);
@@ -17,6 +16,9 @@ const Add: React.FC = () => {
   const [birthdate, setBirthdate] = useState<string>("");
   const [height, setHeight] = useState<string>("");
   const [weight, setWeight] = useState<string>("");
+  const [muscleMass, setMuscleMass] = useState<string>("");
+  const [bodyFatMass, setBodyFatMass] = useState<string>("");
+  const [bodyFatPercentage, setBodyFatPercentage] = useState<string>("");
   const [activityLevel, setActivityLevel] = useState<string>(
     "적당히 활동적 (주 3~5일 운동)"
   );
@@ -26,12 +28,6 @@ const Add: React.FC = () => {
   const [entryMethod, setEntryMethod] = useState<string>("");
   const [entryPassword, setEntryPassword] = useState<string>("");
 
-  const mock = new MockAdapter(axios);
-
-  mock.onPost("https://your-server-endpoint/api/submit").reply(200, {
-    message: "회원 등록이 성공적으로 완료되었습니다.",
-  });
-
   const submitForm = async () => {
     const formData = {
       name,
@@ -40,6 +36,9 @@ const Add: React.FC = () => {
       birthdate,
       height,
       weight,
+      muscleMass, // 추가된 데이터
+      bodyFatMass, // 추가된 데이터
+      bodyFatPercentage, // 추가된 데이터
       activityLevel,
       goal,
       notes,
@@ -47,16 +46,11 @@ const Add: React.FC = () => {
       detailAddress,
       deliveryMessage,
       entryMethod,
-      entryPassword: entryMethod === "password" ? entryPassword : null, // password가 아니면 null로 설정
+      entryPassword: entryMethod === "password" ? entryPassword : null,
     };
 
-    console.log("폼 데이터:", formData);
-
     try {
-      const response = await axios.post(
-        "https://your-server-endpoint/api/submit",
-        formData
-      );
+      const response = await apiClient.post("/api/submit", formData);
       console.log("서버 응답:", response.data);
       alert("회원 등록이 성공적으로 완료되었습니다.");
     } catch (error) {
@@ -88,6 +82,12 @@ const Add: React.FC = () => {
             setHeight={setHeight}
             weight={weight}
             setWeight={setWeight}
+            muscleMass={muscleMass}
+            setMuscleMass={setMuscleMass}
+            bodyFatMass={bodyFatMass}
+            setBodyFatMass={setBodyFatMass}
+            bodyFatPercentage={bodyFatPercentage}
+            setBodyFatPercentage={setBodyFatPercentage}
             onNext={() => setStep(3)}
             onPrevious={() => setStep(1)}
           />

@@ -1,6 +1,7 @@
 import { useState, ChangeEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
+import { apiClient } from "../api";
 import InputComponent from "../components/ui/InputComponent";
 import Button from "../components/ui/Button";
 
@@ -10,6 +11,7 @@ const Bia: React.FC = () => {
   const [bodyFatMass, setBodyFatMass] = useState<string>("");
   const [bodyFatPercentage, setBodyFatPercentage] = useState<string>("");
   const navigate = useNavigate();
+  const { clientId } = useParams<{ clientId: string }>();
 
   const handleWeightChange = (e: ChangeEvent<HTMLInputElement>) => {
     setWeight(e.target.value);
@@ -27,7 +29,7 @@ const Bia: React.FC = () => {
     setBodyFatPercentage(e.target.value);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const updatedData = {
       weight,
       muscleMass,
@@ -36,12 +38,19 @@ const Bia: React.FC = () => {
     };
     console.log("Updated Body Composition Data:", updatedData);
 
-    navigate("/meal");
+    try {
+      await apiClient.post(`/clients/${clientId}/body_data`, updatedData);
+      console.log("체성분 데이터가 성공적으로 저장되었습니다.");
+      navigate(`/meal/${clientId}`);
+    } catch (error) {
+      console.error("체성분 데이터 저장에 실패했습니다:", error);
+      alert("체성분 데이터 저장에 실패했습니다. 다시 시도해주세요.");
+    }
   };
 
   return (
     <Container>
-      <h1>체성분 데이터를 입력하세요ㄴ</h1>
+      <h1>체성분 데이터를 입력하세요</h1>
       <div className="input-group">
         <label htmlFor="weight">체중</label>
         <InputComponent
@@ -97,7 +106,7 @@ const Container = styled.div`
   max-width: 500px;
   margin: 0 auto;
 
-  h2 {
+  h1 {
     margin-bottom: 20px;
     font-size: 24px;
   }
