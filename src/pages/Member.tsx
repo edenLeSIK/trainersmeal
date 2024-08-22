@@ -4,7 +4,7 @@ import styled from "styled-components";
 import { apiClient } from "../api";
 import Button from "../components/ui/Button";
 
-interface MemberDetailProps {
+interface MemberProps {
   client_id: string;
   name: string;
   gender: number;
@@ -23,7 +23,7 @@ interface MemberDetailProps {
   entryPassword: string;
 }
 
-const MemberDetail: React.FC = () => {
+const Member: React.FC = () => {
   const { clientId } = useParams<{ clientId: string }>();
   const [memberDetail, setMemberDetail] = useState<MemberDetailProps | null>(
     null
@@ -122,7 +122,7 @@ const MemberDetail: React.FC = () => {
   );
 };
 
-export default MemberDetail;
+export default Member;
 
 const Container = styled.div`
   padding: 20px;

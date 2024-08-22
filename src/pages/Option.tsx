@@ -156,7 +156,6 @@ const Option: React.FC = () => {
         : optionType === "veg"
         ? setAdditionalVeg
         : setAdditionalFlavor;
-
     setOption((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
