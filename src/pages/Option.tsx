@@ -5,28 +5,36 @@ import { apiClient } from "../api";
 import Button from "../components/ui/Button";
 import { main } from "../styles/color";
 
-interface OptionItem {
+interface OptionBlock {
   id: string;
   block_name: string;
-  difference: number;
+  difference?: number;
+  price?: number;
+  is_default?: boolean;
+}
+
+interface OptionItem {
+  id: string;
+  option: string;
+  block: OptionBlock[];
 }
 
 const Option: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [proUtilOptions, setProUtilOptions] = useState<OptionItem[]>([]);
-  const [vegUtilOptions, setVegUtilOptions] = useState<OptionItem[]>([]);
-  const [baseUtilOptions, setBaseUtilOptions] = useState<OptionItem[]>([]);
+  const [baseOptions, setBaseOptions] = useState<OptionItem[]>([]);
+  const [proteinOptions, setProteinOptions] = useState<OptionItem[]>([]);
+  const [vegOptions, setVegOptions] = useState<OptionItem[]>([]);
   const [flavorOptions, setFlavorOptions] = useState<OptionItem[]>([]);
 
-  const [selectedProUtil, setSelectedProUtil] = useState<string>("");
-  const [selectedVegUtil, setSelectedVegUtil] = useState<string>("");
-  const [selectedBaseUtil, setSelectedBaseUtil] = useState<string>("");
+  const [selectedBase, setSelectedBase] = useState<string>("");
+  const [selectedProtein, setSelectedProtein] = useState<string>("");
+  const [selectedVeg, setSelectedVeg] = useState<string>("");
   const [selectedFlavor, setSelectedFlavor] = useState<string>("");
 
-  const [additionalProUtil, setAdditionalProUtil] = useState<string[]>([]);
-  const [additionalVegUtil, setAdditionalVegUtil] = useState<string[]>([]);
+  const [additionalProtein, setAdditionalProtein] = useState<string[]>([]);
+  const [additionalVeg, setAdditionalVeg] = useState<string[]>([]);
   const [additionalFlavor, setAdditionalFlavor] = useState<string[]>([]);
 
   const [totalPrice, setTotalPrice] = useState<number>(11000);
@@ -35,24 +43,35 @@ const Option: React.FC = () => {
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const [proUtilRes, vegUtilRes, baseUtilRes, flavorRes] =
-          await Promise.all([
-            apiClient.get(`/options/pro_util/${id}`),
-            apiClient.get(`/options/veg_util/${id}`),
-            apiClient.get(`/options/base_util/${id}`),
-            apiClient.get(`/options/flavor/${id}`),
-          ]);
+        const response = await apiClient.get(`/menu/options/${id}`);
+        const data = response.data;
 
-        setProUtilOptions(proUtilRes.data || []);
-        setVegUtilOptions(vegUtilRes.data || []);
-        setBaseUtilOptions(baseUtilRes.data || []);
-        setFlavorOptions(flavorRes.data || []);
+        setBaseOptions(data.base || []);
+        setProteinOptions(data.protein || []);
+        setVegOptions(data.veg || []);
+        setFlavorOptions(data.flavor || []);
 
-        // 각 옵션의 첫 번째 항목을 기본값으로 설정
-        setSelectedProUtil(proUtilRes.data?.[0]?.id || "");
-        setSelectedVegUtil(vegUtilRes.data?.[0]?.id || "");
-        setSelectedBaseUtil(baseUtilRes.data?.[0]?.id || "");
-        setSelectedFlavor(flavorRes.data?.[0]?.id || "");
+        // 기본값 설정
+        setSelectedBase(
+          data.base?.find((item: OptionItem) =>
+            item.block.find((block: OptionBlock) => block.is_default)
+          )?.block[0].id || ""
+        );
+        setSelectedProtein(
+          data.protein?.find((item: OptionItem) =>
+            item.block.find((block: OptionBlock) => block.is_default)
+          )?.block[0].id || ""
+        );
+        setSelectedVeg(
+          data.veg?.find((item: OptionItem) =>
+            item.block.find((block: OptionBlock) => block.is_default)
+          )?.block[0].id || ""
+        );
+        setSelectedFlavor(
+          data.flavor?.find((item: OptionItem) =>
+            item.block.find((block: OptionBlock) => block.is_default)
+          )?.block[0].id || ""
+        );
       } catch (error) {
         console.error("옵션 데이터를 불러오는데 실패했습니다:", error);
         alert("옵션 데이터를 불러오는데 실패했습니다. 다시 시도해주세요.");
@@ -64,64 +83,79 @@ const Option: React.FC = () => {
 
   // 가격 계산 로직
   useEffect(() => {
-    const baseDifference = 11000;
-    const proDifference =
-      proUtilOptions.find((opt) => opt.id === selectedProUtil)?.difference || 0;
-    const vegDifference =
-      vegUtilOptions.find((opt) => opt.id === selectedVegUtil)?.difference || 0;
-    const baseDifferenceOption =
-      baseUtilOptions.find((opt) => opt.id === selectedBaseUtil)?.difference ||
-      0;
-    const flavorDifference =
-      flavorOptions.find((opt) => opt.id === selectedFlavor)?.difference || 0;
+    const basePrice = 11000;
+    const selectedBasePrice =
+      baseOptions
+        .find((opt) => opt.id === selectedBase)
+        ?.block.find((block) => block.id === selectedBase)?.difference || 0;
+    const selectedProteinPrice =
+      proteinOptions
+        .find((opt) => opt.id === selectedProtein)
+        ?.block.find((block) => block.id === selectedProtein)?.difference || 0;
+    const selectedVegPrice =
+      vegOptions
+        .find((opt) => opt.id === selectedVeg)
+        ?.block.find((block) => block.id === selectedVeg)?.difference || 0;
+    const selectedFlavorPrice =
+      flavorOptions
+        .find((opt) => opt.id === selectedFlavor)
+        ?.block.find((block) => block.id === selectedFlavor)?.difference || 0;
 
-    const additionalProDifference = additionalProUtil.reduce(
+    const additionalProteinPrice = additionalProtein.reduce(
       (acc, id) =>
-        acc + (proUtilOptions.find((opt) => opt.id === id)?.difference || 0),
+        acc +
+        (proteinOptions
+          .find((opt) => opt.id === id)
+          ?.block.find((block) => block.id === id)?.price || 0),
       0
     );
-    const additionalVegDifference = additionalVegUtil.reduce(
+    const additionalVegPrice = additionalVeg.reduce(
       (acc, id) =>
-        acc + (vegUtilOptions.find((opt) => opt.id === id)?.difference || 0),
+        acc +
+        (vegOptions
+          .find((opt) => opt.id === id)
+          ?.block.find((block) => block.id === id)?.price || 0),
       0
     );
-    const additionalFlavorDifference = additionalFlavor.reduce(
+    const additionalFlavorPrice = additionalFlavor.reduce(
       (acc, id) =>
-        acc + (flavorOptions.find((opt) => opt.id === id)?.difference || 0),
+        acc +
+        (flavorOptions
+          .find((opt) => opt.id === id)
+          ?.block.find((block) => block.id === id)?.price || 0),
       0
     );
 
     setTotalPrice(
-      baseDifference +
-        proDifference +
-        vegDifference +
-        baseDifferenceOption +
-        flavorDifference +
-        additionalProDifference +
-        additionalVegDifference +
-        additionalFlavorDifference
+      basePrice +
+        selectedBasePrice +
+        selectedProteinPrice +
+        selectedVegPrice +
+        selectedFlavorPrice +
+        additionalProteinPrice +
+        additionalVegPrice +
+        additionalFlavorPrice
     );
   }, [
-    selectedProUtil,
-    selectedVegUtil,
-    selectedBaseUtil,
+    selectedBase,
+    selectedProtein,
+    selectedVeg,
     selectedFlavor,
-    additionalProUtil,
-    additionalVegUtil,
+    additionalProtein,
+    additionalVeg,
     additionalFlavor,
   ]);
 
   const handleAdditionalChange = (
-    optionType: "pro" | "veg" | "flavor",
+    optionType: "protein" | "veg" | "flavor",
     id: string
   ) => {
     const setOption =
-      optionType === "pro"
-        ? setAdditionalProUtil
+      optionType === "protein"
+        ? setAdditionalProtein
         : optionType === "veg"
-        ? setAdditionalVegUtil
+        ? setAdditionalVeg
         : setAdditionalFlavor;
-
     setOption((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
@@ -131,12 +165,12 @@ const Option: React.FC = () => {
     try {
       // 선택된 옵션과 추가 옵션을 서버에 전송
       const response = await apiClient.post(`/menu/update/${id}`, {
-        selectedProUtil,
-        selectedVegUtil,
-        selectedBaseUtil,
+        selectedBase,
+        selectedProtein,
+        selectedVeg,
         selectedFlavor,
-        additionalProUtil,
-        additionalVegUtil,
+        additionalProtein,
+        additionalVeg,
         additionalFlavor,
         totalPrice,
       });
@@ -165,68 +199,74 @@ const Option: React.FC = () => {
       {/* 옵션 섹션들 */}
       <OptionSection>
         <h2 className="option-title">
+          베이스 <span className="required">필수</span>
+        </h2>
+        {Array.isArray(baseOptions) &&
+          baseOptions.map((option) =>
+            option.block.map((block) => (
+              <OptionItem key={block.id}>
+                <input
+                  type="radio"
+                  id={`base-${block.id}`}
+                  name="base"
+                  value={block.id}
+                  checked={selectedBase === block.id}
+                  onChange={() => setSelectedBase(block.id)}
+                />
+                <label htmlFor={`base-${block.id}`}>
+                  {block.block_name} (+{block.difference}원)
+                </label>
+              </OptionItem>
+            ))
+          )}
+      </OptionSection>
+
+      <OptionSection>
+        <h2 className="option-title">
           단백질 <span className="required">필수</span>
         </h2>
-        {Array.isArray(proUtilOptions) &&
-          proUtilOptions.map((option) => (
-            <OptionItem key={option.id}>
-              <input
-                type="radio"
-                id={`proUtil-${option.id}`}
-                name="proUtil"
-                value={option.id}
-                checked={selectedProUtil === option.id}
-                onChange={() => setSelectedProUtil(option.id)}
-              />
-              <label htmlFor={`proUtil-${option.id}`}>
-                {option.block_name} (+{option.difference}원)
-              </label>
-            </OptionItem>
-          ))}
+        {Array.isArray(proteinOptions) &&
+          proteinOptions.map((option) =>
+            option.block.map((block) => (
+              <OptionItem key={block.id}>
+                <input
+                  type="radio"
+                  id={`protein-${block.id}`}
+                  name="protein"
+                  value={block.id}
+                  checked={selectedProtein === block.id}
+                  onChange={() => setSelectedProtein(block.id)}
+                />
+                <label htmlFor={`protein-${block.id}`}>
+                  {block.block_name} (+{block.difference}원)
+                </label>
+              </OptionItem>
+            ))
+          )}
       </OptionSection>
 
       <OptionSection>
         <h2 className="option-title">
           채소 <span className="required">필수</span>
         </h2>
-        {Array.isArray(vegUtilOptions) &&
-          vegUtilOptions.map((option) => (
-            <OptionItem key={option.id}>
-              <input
-                type="radio"
-                id={`vegUtil-${option.id}`}
-                name="vegUtil"
-                value={option.id}
-                checked={selectedVegUtil === option.id}
-                onChange={() => setSelectedVegUtil(option.id)}
-              />
-              <label htmlFor={`vegUtil-${option.id}`}>
-                {option.block_name} (+{option.difference}원)
-              </label>
-            </OptionItem>
-          ))}
-      </OptionSection>
-
-      <OptionSection>
-        <h2 className="option-title">
-          베이스 <span className="required">필수</span>
-        </h2>
-        {Array.isArray(baseUtilOptions) &&
-          baseUtilOptions.map((option) => (
-            <OptionItem key={option.id}>
-              <input
-                type="radio"
-                id={`baseUtil-${option.id}`}
-                name="baseUtil"
-                value={option.id}
-                checked={selectedBaseUtil === option.id}
-                onChange={() => setSelectedBaseUtil(option.id)}
-              />
-              <label htmlFor={`baseUtil-${option.id}`}>
-                {option.block_name} (+{option.difference}원)
-              </label>
-            </OptionItem>
-          ))}
+        {Array.isArray(vegOptions) &&
+          vegOptions.map((option) =>
+            option.block.map((block) => (
+              <OptionItem key={block.id}>
+                <input
+                  type="radio"
+                  id={`veg-${block.id}`}
+                  name="veg"
+                  value={block.id}
+                  checked={selectedVeg === block.id}
+                  onChange={() => setSelectedVeg(block.id)}
+                />
+                <label htmlFor={`veg-${block.id}`}>
+                  {block.block_name} (+{block.difference}원)
+                </label>
+              </OptionItem>
+            ))
+          )}
       </OptionSection>
 
       <OptionSection>
@@ -234,76 +274,84 @@ const Option: React.FC = () => {
           소스 <span className="required">필수</span>
         </h2>
         {Array.isArray(flavorOptions) &&
-          flavorOptions.map((option) => (
-            <OptionItem key={option.id}>
-              <input
-                type="radio"
-                id={`flavor-${option.id}`}
-                name="flavor"
-                value={option.id}
-                checked={selectedFlavor === option.id}
-                onChange={() => setSelectedFlavor(option.id)}
-              />
-              <label htmlFor={`flavor-${option.id}`}>
-                {option.block_name} (+{option.difference}원)
-              </label>
-            </OptionItem>
-          ))}
+          flavorOptions.map((option) =>
+            option.block.map((block) => (
+              <OptionItem key={block.id}>
+                <input
+                  type="radio"
+                  id={`flavor-${block.id}`}
+                  name="flavor"
+                  value={block.id}
+                  checked={selectedFlavor === block.id}
+                  onChange={() => setSelectedFlavor(block.id)}
+                />
+                <label htmlFor={`flavor-${block.id}`}>
+                  {block.block_name} (+{block.difference}원)
+                </label>
+              </OptionItem>
+            ))
+          )}
       </OptionSection>
 
       {/* 추가 옵션들 */}
       <OptionSection>
         <h2 className="option-title">추가 단백질</h2>
-        {Array.isArray(proUtilOptions) &&
-          proUtilOptions.map((option) => (
-            <OptionItem key={option.id}>
-              <input
-                type="checkbox"
-                id={`additionalPro-${option.id}`}
-                value={option.id}
-                onChange={() => handleAdditionalChange("pro", option.id)}
-              />
-              <label htmlFor={`additionalPro-${option.id}`}>
-                {option.block_name} (+{option.difference}원)
-              </label>
-            </OptionItem>
-          ))}
+        {Array.isArray(proteinOptions) &&
+          proteinOptions.map((option) =>
+            option.block.map((block) => (
+              <OptionItem key={block.id}>
+                <input
+                  type="checkbox"
+                  id={`additionalProtein-${block.id}`}
+                  value={block.id}
+                  onChange={() => handleAdditionalChange("protein", block.id)}
+                />
+                <label htmlFor={`additionalProtein-${block.id}`}>
+                  {block.block_name} (+{block.price}원)
+                </label>
+              </OptionItem>
+            ))
+          )}
       </OptionSection>
 
       <OptionSection>
         <h2 className="option-title">추가 채소</h2>
-        {Array.isArray(vegUtilOptions) &&
-          vegUtilOptions.map((option) => (
-            <OptionItem key={option.id}>
-              <input
-                type="checkbox"
-                id={`additionalVeg-${option.id}`}
-                value={option.id}
-                onChange={() => handleAdditionalChange("veg", option.id)}
-              />
-              <label htmlFor={`additionalVeg-${option.id}`}>
-                {option.block_name} (+{option.difference}원)
-              </label>
-            </OptionItem>
-          ))}
+        {Array.isArray(vegOptions) &&
+          vegOptions.map((option) =>
+            option.block.map((block) => (
+              <OptionItem key={block.id}>
+                <input
+                  type="checkbox"
+                  id={`additionalVeg-${block.id}`}
+                  value={block.id}
+                  onChange={() => handleAdditionalChange("veg", block.id)}
+                />
+                <label htmlFor={`additionalVeg-${block.id}`}>
+                  {block.block_name} (+{block.price}원)
+                </label>
+              </OptionItem>
+            ))
+          )}
       </OptionSection>
 
       <OptionSection>
         <h2 className="option-title">추가 소스</h2>
         {Array.isArray(flavorOptions) &&
-          flavorOptions.map((option) => (
-            <OptionItem key={option.id}>
-              <input
-                type="checkbox"
-                id={`additionalFlavor-${option.id}`}
-                value={option.id}
-                onChange={() => handleAdditionalChange("flavor", option.id)}
-              />
-              <label htmlFor={`additionalFlavor-${option.id}`}>
-                {option.block_name} (+{option.difference}원)
-              </label>
-            </OptionItem>
-          ))}
+          flavorOptions.map((option) =>
+            option.block.map((block) => (
+              <OptionItem key={block.id}>
+                <input
+                  type="checkbox"
+                  id={`additionalFlavor-${block.id}`}
+                  value={block.id}
+                  onChange={() => handleAdditionalChange("flavor", block.id)}
+                />
+                <label htmlFor={`additionalFlavor-${block.id}`}>
+                  {block.block_name} (+{block.price}원)
+                </label>
+              </OptionItem>
+            ))
+          )}
       </OptionSection>
 
       <div className="button-wrapper">
