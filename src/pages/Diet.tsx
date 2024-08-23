@@ -36,6 +36,7 @@ const Diet: React.FC = () => {
   const [totalPrice, setTotalPrice] = useState<number>(0);
 
   // 요일 숫자를 요일 이름으로 변환하는 함수
+<<<<<<< HEAD
   const getDayName = (day: number | string): string => {
     const days = ["월", "화", "수", "목", "금", "토"];
 
@@ -51,6 +52,15 @@ const Diet: React.FC = () => {
   };
 
   // 메뉴를 가져오는 함수
+=======
+  const getDayName = (day: number): string => {
+    const days = ["월", "화", "수", "목", "금", "토"];
+    return days[day];
+  };
+
+  // 이 부분은 실제 통신 후 에러 처리를 해야할 듯
+  // 이전 페이지인 meal에서 선택한 식단에 해당하는 meal_id를 가져와 그에 맞는 일주일치 메뉴를 불러와 데이터 뿌려주는 api
+>>>>>>> fd76d5ba50edba1ce12e7fe6c1277ae6e4ca4d6f
   const fetchMenus = async (mealId: string) => {
     try {
       const response = await apiClient.get(`/menus/${mealId}`);
@@ -223,6 +233,7 @@ const Container = styled.div`
 
   .option {
     display: flex;
+    flex-direction: column;
     align-items: center;
     padding: 20px;
     margin-bottom: 10px;
@@ -235,12 +246,19 @@ const Container = styled.div`
       background-color: #f0f0f0;
     }
 
+    .day-name {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #007bff;
+    }
+
     img {
       width: 80px;
       height: 80px;
       object-fit: cover;
       border-radius: 10px;
-      margin-right: 20px;
+      margin-bottom: 10px;
     }
 
     .option-details {
