@@ -68,7 +68,7 @@ const Member: React.FC = () => {
       <div className="info-group">
         <h2>신체 정보</h2>
         <p>
-          <strong>키:</strong> {memberDetail.height} cm
+          <strong>키</strong> {memberDetail.height} cm
         </p>
         <p>
           <strong>체중</strong> {memberDetail.weight} kg
