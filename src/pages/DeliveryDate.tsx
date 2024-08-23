@@ -47,7 +47,7 @@ const DeliveryDate: React.FC = () => {
     if (isMonday(selectedDate) && selectedDate >= getNextMonday()) {
       try {
         // 서버로 데이터 전송
-        const response = await apiClient.post("/your-endpoint", {
+        const response = await apiClient.post("/order", {
           deliveryType: state.deliveryType,
           deliveryDate: formattedDate, // YYYY-MM-DD 형식으로 날짜 전송
           selectedMenus: state.selectedMenus,
