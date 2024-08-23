@@ -35,8 +35,22 @@ const Diet: React.FC = () => {
   const [activeTab, setActiveTab] = useState<number>(0);
   const [totalPrice, setTotalPrice] = useState<number>(0);
 
-  // 이 부분은 실제 통신 후 에러 처리를 해야할 듯
-  // 이전 페이지인 meal에서 선택한 식단에 해당하는 meal_id를 가져와 그에 맞는 일주일치 메뉴를 불러와 데이터 뿌려주는 api
+  // 요일 숫자를 요일 이름으로 변환하는 함수
+  const getDayName = (day: number | string): string => {
+    const days = ["월", "화", "수", "목", "금", "토"];
+
+    // day를 숫자로 변환
+    const dayIndex = typeof day === "string" ? parseInt(day, 10) : day;
+
+    // dayIndex가 유효한 숫자인지 확인
+    if (isNaN(dayIndex) || dayIndex < 0 || dayIndex > 5) {
+      return "Invalid Day";
+    }
+
+    return days[dayIndex];
+  };
+
+  // 메뉴를 가져오는 함수
   const fetchMenus = async (mealId: string) => {
     try {
       const response = await apiClient.get(`/menus/${mealId}`);
@@ -60,7 +74,6 @@ const Diet: React.FC = () => {
 
   useEffect(() => {
     if (state?.updatedMenu) {
-      // Option 페이지에서 업데이트된 메뉴가 있으면 해당 메뉴를 반영합니다.
       setSelectedMenus((prevMenus) => {
         const updatedMenus = [...prevMenus];
         const menuIndex = prevMenus[activeTab].findIndex(
@@ -79,7 +92,6 @@ const Diet: React.FC = () => {
     }
   }, [activeTab, state?.selectedMeals, state?.updatedMenu]);
 
-  // 메뉴의 가격을 계산하여 totalPrice에 저장
   useEffect(() => {
     const price = selectedMenus.reduce((sum, menuList) => {
       return (
@@ -90,30 +102,28 @@ const Diet: React.FC = () => {
     setTotalPrice(price);
   }, [selectedMenus]);
 
-  // 탭을 클릭했을 때 해당 탭의 메뉴를 불러옴
   const handleTabClick = (index: number) => {
     setActiveTab(index);
     const currentMealId = state?.selectedMeals[index];
     if (currentMealId) {
-      fetchMenus(currentMealId); // 해당 식단의 ID를 사용하여 메뉴 데이터 불러옴
+      fetchMenus(currentMealId);
     }
   };
 
-  // 옵션 페이지로 이동
   const handleOptionClick = (menuId: number) => {
     navigate(`/option/${menuId}`, { state: { menuId } });
   };
 
-  // 주문 페이지로 이동할 때 최종 메뉴와 총 금액을 전달
   const handleOrder = () => {
     navigate("/delivery-pickup", {
       state: {
         clientId: state?.clientId,
         selectedMenus,
-        totalPrice, // 결제해야 할 총 금액을 함께 전달
+        totalPrice,
       },
     });
   };
+
   return (
     <Container>
       <div className="tabs">
@@ -134,6 +144,7 @@ const Diet: React.FC = () => {
             className="option"
             onClick={() => handleOptionClick(menu.id)}
           >
+            <div className="day-name">{getDayName(menu.day)}</div>
             <img src={sample} alt={menu.menu_name} />
             <div className="option-details">
               <div className="menu-info">
